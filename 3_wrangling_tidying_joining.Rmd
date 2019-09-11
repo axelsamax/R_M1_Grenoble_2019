@@ -264,12 +264,23 @@ select(df, dep_time, carrier)
 rename(df, mois = month)
 ```
 
+# selet negativement
+```{r}
+select(df, contains("y"))
+```
+
 ## creating new variables: `mutate()`
 
 > you want to create a *new* variable with some manipulation
 
 - you can use `mutate(data, newvar = f(oldvar))`
 - where `f()` is some function or manipulation
+
+# exercice sur filter+ select: créer un jeu de données quatre juillet qui contient tout les vols du 4 juillet et seulement leur depart et destination
+```{r}
+quatre_juillet <- filter( df, day ==4 & month == 7)
+quatre_juillet <- select(quatre_juillet, origin, dest)
+```
 
 ```{r}
 df_new <- mutate(df, starting_year = year - 2013)
