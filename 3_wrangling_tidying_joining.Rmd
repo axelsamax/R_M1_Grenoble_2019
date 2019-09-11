@@ -191,12 +191,14 @@ df
 ## Filtering
 
 > all December flights
+
 ```{r}
 filter(df, month == 12)
 ```
 
 ## Filtering over multiple criteria
 > all Christmas flights departed around midday
+
 ```{r}
 filter(df, month == 12 & day == 25 & dep_time>1100 & dep_time <1300)
 ```
@@ -210,6 +212,9 @@ filter(df, month == 12 & day == 25 & dep_time>1100 & dep_time <1300)
 - you can use an alternative notation, `filter(df, month %in% c(6,7,8))`
 
 ## Sort data: `arrange()`
+```{r}
+filter(df,month == 7 & day == 17 & origin == 'LGA')
+```
 
 - `arrange()` lets you sort data
 - it is like the sorting you do in `View()`, but:
@@ -218,11 +223,21 @@ filter(df, month == 12 & day == 25 & dep_time>1100 & dep_time <1300)
 - this can be useful when looking for special observations, like the first flight of each day
 
 ## `arrange()`
+```{r}
+filter(df, dest != 'CDG')
+```
+# exercice 3: 
+```{r}
+noel <- filter(df, month == 12 & day == 25 & dep_time>1100 & dep_time <1300)
+table(noel$dest)
 
 ```{r}
 arrange(df, dep_time)
 ```
 
+```{r}
+ggplot(noel, aes(dest))+geom_bar()+coord_flip()
+```
 
 ## Selecting columns: `select()`
 
