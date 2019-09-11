@@ -48,6 +48,7 @@ theme_set(theme_minimal())
 ```{r}
 library(nycflights13)
 df <- flights
+
 ```
 
 ## getting data into R: other sources
@@ -221,6 +222,14 @@ filter(df, month == 12 & day == 25 & dep_time>1100 & dep_time <1300)
 
 ```{r}
 arrange(df, dep_time)
+```
+
+```{r}
+noel<-filter(df, month == 12 & day == 25 & dep_time>1100 & dep_time < 1300)
+noel
+```
+```{r}
+ggplot(noel, aes(dest))+geom_bar()
 ```
 
 
