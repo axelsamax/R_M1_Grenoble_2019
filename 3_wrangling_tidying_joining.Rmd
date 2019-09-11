@@ -253,6 +253,21 @@ arrange(df, dep_time)
 select(df, dep_time, carrier)
 ```
 
+#Sélectionner des variables contenant certains caractères : startswith, endswith, contains
+```{r}
+select(df, contains("y"))
+```
+
+## Exercice sur filter + select
+
+# Créer un jeu de données quatre_juillet qui contient tous les vols du 4 juillet et seulement leur départ et destination.
+
+```{r}
+temp <- filter(df, month == 7 & day == 4)
+quatre_juillet <- select(temp, origin,dest)
+quatre_juillet
+```
+
 ## `select()` examples
 
 - you want more than one variable: you list all variables by bare name: `select(data, var1, var2, var3, ...)`
