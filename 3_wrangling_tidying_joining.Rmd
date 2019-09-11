@@ -13,6 +13,11 @@ library(tidyverse)
 theme_set(theme_minimal())
 ```
 
+
+**start_with**
+**containt**
+**end_with**
+
 Exercice 1 
 vol partie de la guardia le 17 juillet 
 ```{r}
@@ -35,6 +40,14 @@ Exercice 4
 ```{r}
 ggplot(df_noel,aes(dest))+geom_bar()+
   coord_flip()
+```
+
+exercice 5 
+crée jeu de donné 4_juillet qui contient tout les vol du quatre juillet depart-destination
+```{r}
+f_jully<-filter(df,month==7 & day==4)
+f_jully<-select(f_jully,origin,dest)
+f_jully
 ```
 
 
