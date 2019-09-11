@@ -249,6 +249,10 @@ ggplot(noel, aes(dest))+geom_bar()+coord_flip()
 arrange(df, dep_time)
 ```
 
+```{r}
+arrange(df, day, month)
+```
+
 
 ## Selecting columns: `select()`
 
@@ -257,6 +261,15 @@ arrange(df, dep_time)
 ```{r}
 select(df, dep_time, carrier)
 ```
+
+```{r}
+select(df, -dep_time, -carrier)
+```
+
+```{r}
+select(df, contains("y"))
+```
+
 
 ## `select()` examples
 
@@ -274,6 +287,14 @@ select(df, dep_time, carrier)
 ```{r}
 rename(df, mois = month)
 ```
+
+#exo filter et select , sortir jeu de donné quatre_juillet qui contient tout les vols du 4 juillet et seulement leur depart et destinations
+
+```{r}
+quatre_juillet <- filter(df, month == 7 & day == 4)
+quatre_juillet <- select(quatre_juillet, origin, dest)
+```
+
 
 ## creating new variables: `mutate()`
 
