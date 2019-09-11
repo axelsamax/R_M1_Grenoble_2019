@@ -239,7 +239,21 @@ ggplot(noel, aes(dest))+geom_bar()
 
 ```{r}
 select(df, dep_time, carrier)
+select(df, -dep_time, -carrier)
+select(df, starts_with("dep")) #variables qui commencent par dep
+select(df, contains("y")) #variables qui contiennent y
+
+#filter ça sélectionne des lignes et select sélectionne des colonnes
 ```
+
+```{r}
+#Exercice : créer un jeu de données 04/07 et qui contient tous les vols du 04/07 et seulement leur départ et destination
+
+juillet <- filter(df, month==7 & day==4)
+depart_juillet<-select(juillet, dep_time, dest)
+
+```
+
 
 ## `select()` examples
 
