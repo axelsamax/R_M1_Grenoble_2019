@@ -191,12 +191,14 @@ df
 ## Filtering
 
 > all December flights
+
 ```{r}
 filter(df, month == 12)
 ```
 
 ## Filtering over multiple criteria
 > all Christmas flights departed around midday
+
 ```{r}
 filter(df, month == 12 & day == 25 & dep_time>1100 & dep_time <1300)
 ```
