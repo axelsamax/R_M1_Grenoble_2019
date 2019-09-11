@@ -209,6 +209,27 @@ filter(df, month == 12 & day == 25 & dep_time>1100 & dep_time <1300)
 - can  become cumbersome
 - you can use an alternative notation, `filter(df, month %in% c(6,7,8))`
 
+## Exercice 1: nombre de vols parties de La Guardia le 17 juillet
+```{r}
+filter(df, origin == "LGA", month == 7, day == 17)
+```
+
+##Exercice 2 : Tout les vols qui ne sont PAS allés à Paris
+```{r}
+filter(df, dest!= "CDG")
+```
+#Exercice 3 : Nombre de vol pour chaque destinations le jour de Noel autour de Midi.
+```{r}
+noel <- filter(df, month == 12 & day == 25 & dep_time >1100 & dep_time<1300)
+table(noel$dest)
+```
+
+Exercice 4 : Graphique des destinations de Noel
+```{r}
+ggplot(noel, aes(dest)) + geom_bar() + coord_flip() 
+
+```
+
 ## Sort data: `arrange()`
 
 - `arrange()` lets you sort data
