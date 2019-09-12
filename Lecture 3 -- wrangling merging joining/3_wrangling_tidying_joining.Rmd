@@ -48,6 +48,7 @@ theme_set(theme_minimal())
 ```{r}
 library(nycflights13)
 df <- flights
+
 ```
 
 ## getting data into R: other sources
@@ -250,16 +251,7 @@ filter(df, dest != "CDG")
 
 ```{r}
 noel <- filter(df, month == 12 & day == 25 & dep_time>1100 & dep_time <1300)
-=======
-## Exercice3 : toutes les destination des vols de Noel midi
 
-```{r}
-noel <-filter(df, month == 12 & day == 25 & dep_time>1100 & dep_time <1300)
->>>>>>> 02ade750a03bc97e809c27d3f284828e5f30a695:3_wrangling_tidying_joining.Rmd
-=======
-## Exercice 1: vol partis de La Guardia le 17 juillet
-
-```{r}
 filter(df,origin == LGA & day == 17 & month == 7)
 ```
 
@@ -274,7 +266,6 @@ filter(df,dest != "CDG")
 ## Exercice 3: liste des déstinations de tous les vols de Noël midi
 ```{r}
 noel <- filter(df, month == 12 & day == 25 & dep_time>1100 & dep_time <1300)
->>>>>>> cc2fdc3ec0512b574e9aaf91be064e3bb8aeba3f:3_wrangling_tidying_joining.Rmd
 
 table(noel$dest)
 ```
@@ -364,25 +355,26 @@ filter(df, dest != 'CDG')
 ```{r}
 noel <- filter(df, month == 12 & day == 25 & dep_time>1100 & dep_time <1300)
 table(noel$dest)
->>>>>>> 08bf0de22970c1cd1d2e5219ed391f42149b7a25:3_wrangling_tidying_joining.Rmd
 
-```{r}
-<<<<<<< HEAD:Lecture 3 -- wrangling merging joining/3_wrangling_tidying_joining.Rmd
-arrange(df, month, day)
-=======
-arrange(df,month,day)
->>>>>>> cc2fdc3ec0512b574e9aaf91be064e3bb8aeba3f:3_wrangling_tidying_joining.Rmd
 ```
 
 ```{r}
-<<<<<<< HEAD:Lecture 3 -- wrangling merging joining/3_wrangling_tidying_joining.Rmd
-ggplot(noel, aes(dest))+geom_bar()+coord_flip()
+
 ```
 =======
 arrange(df, day, month)
 ```
 
 >>>>>>> cdad40856800179c8f550e806928c8b63e4e8a7a:3_wrangling_tidying_joining.Rmd
+=======
+noel<-filter(df, month == 12 & day == 25 & dep_time>1100 & dep_time < 1300)
+noel
+```
+```{r}
+ggplot(noel, aes(dest))+geom_bar()
+```
+
+>>>>>>> 682a4f8e53a0570a0768314e1840c2956f37613a:3_wrangling_tidying_joining.Rmd
 
 ## Selecting columns: `select()`
 
@@ -390,6 +382,11 @@ arrange(df, day, month)
 
 ```{r}
 select(df, dep_time, carrier)
+select(df, -dep_time, -carrier)
+select(df, starts_with("dep")) #variables qui commencent par dep
+select(df, contains("y")) #variables qui contiennent y
+
+#filter ça sélectionne des lignes et select sélectionne des colonnes
 ```
 <<<<<<< HEAD:Lecture 3 -- wrangling merging joining/3_wrangling_tidying_joining.Rmd
 # select négativement
@@ -426,6 +423,15 @@ select(df, -dep_time, -carrier)
 
 ```{r}
 select(df, contains("y"))
+```
+
+
+```{r}
+#Exercice : créer un jeu de données 04/07 et qui contient tous les vols du 04/07 et seulement leur départ et destination
+
+juillet <- filter(df, month==7 & day==4)
+depart_juillet<-select(juillet, dep_time, dest)
+
 ```
 
 
