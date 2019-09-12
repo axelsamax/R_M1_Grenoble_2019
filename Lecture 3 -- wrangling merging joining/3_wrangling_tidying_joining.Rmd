@@ -214,6 +214,7 @@ filter(df, month == 12 & day == 25 & dep_time>1100 & dep_time <1300)
 <<<<<<< HEAD:Lecture 3 -- wrangling merging joining/3_wrangling_tidying_joining.Rmd
 <<<<<<< HEAD:Lecture 3 -- wrangling merging joining/3_wrangling_tidying_joining.Rmd
 <<<<<<< HEAD:Lecture 3 -- wrangling merging joining/3_wrangling_tidying_joining.Rmd
+<<<<<<< HEAD:Lecture 3 -- wrangling merging joining/3_wrangling_tidying_joining.Rmd
 ## Exercice 1: vol parties de La Guardia le 17 juillet
 
 ```{r}
@@ -231,10 +232,19 @@ filter(df,origin == "LGA", month == 7 & day == 17)
 ## Exercice2: tous les vols qui ne sont PAS allez à Paris (CDG)
 >>>>>>> 02ade750a03bc97e809c27d3f284828e5f30a695:3_wrangling_tidying_joining.Rmd
 
+=======
+#exercice 1 : vol pari de la guardia le 17 juillet
+```{r}
+filter(df, month == 7 & day == 17 & origin == "LGA")
+```
+
+#exo 2 tout les vols qui pas pas aller a paris
+>>>>>>> cdad40856800179c8f550e806928c8b63e4e8a7a:3_wrangling_tidying_joining.Rmd
 ```{r}
 filter(df, dest != "CDG")
 ```
 
+<<<<<<< HEAD:Lecture 3 -- wrangling merging joining/3_wrangling_tidying_joining.Rmd
 <<<<<<< HEAD:Lecture 3 -- wrangling merging joining/3_wrangling_tidying_joining.Rmd
 ## Exerice 3: liste de toutes les destinations des vols de Noel midi
 
@@ -316,6 +326,22 @@ ggplot(noel, aes(dest))+geom_bar()+coord_flip()
 >>>>>>> 6f37131123cf0db103ea91468c549795cf2e119d:3_wrangling_tidying_joining.Rmd
 =======
 >>>>>>> cc2fdc3ec0512b574e9aaf91be064e3bb8aeba3f:3_wrangling_tidying_joining.Rmd
+=======
+#exo3 la liste de toutesles desinations de vols de noel
+```{r}
+noel <- filter(df, month == 12 & day == 25 & dep_time>1100 & dep_time <1300)
+table(noel$dest)
+```
+
+#exo4 plot destinations noel
+
+```{r}
+ggplot(noel, aes(dest))+geom_bar()+coord_flip()
+
+```
+
+
+>>>>>>> cdad40856800179c8f550e806928c8b63e4e8a7a:3_wrangling_tidying_joining.Rmd
 ## Sort data: `arrange()`
 ```{r}
 filter(df,month == 7 & day == 17 & origin == 'LGA')
@@ -349,8 +375,14 @@ arrange(df,month,day)
 ```
 
 ```{r}
+<<<<<<< HEAD:Lecture 3 -- wrangling merging joining/3_wrangling_tidying_joining.Rmd
 ggplot(noel, aes(dest))+geom_bar()+coord_flip()
 ```
+=======
+arrange(df, day, month)
+```
+
+>>>>>>> cdad40856800179c8f550e806928c8b63e4e8a7a:3_wrangling_tidying_joining.Rmd
 
 ## Selecting columns: `select()`
 
@@ -387,6 +419,15 @@ select(df,ends_with("y"))
 select(df,contains("y"))
 ```
 >>>>>>> cc2fdc3ec0512b574e9aaf91be064e3bb8aeba3f:3_wrangling_tidying_joining.Rmd
+
+```{r}
+select(df, -dep_time, -carrier)
+```
+
+```{r}
+select(df, contains("y"))
+```
+
 
 ## `select()` examples
 
@@ -458,11 +499,22 @@ quatre_juillet
 rename(df, mois = month)
 ```
 
+<<<<<<< HEAD:Lecture 3 -- wrangling merging joining/3_wrangling_tidying_joining.Rmd
 # selet negativement
 ```{r}
 select(df, contains("y"))
 ```
 
+=======
+#exo filter et select , sortir jeu de donné quatre_juillet qui contient tout les vols du 4 juillet et seulement leur depart et destinations
+
+```{r}
+quatre_juillet <- filter(df, month == 7 & day == 4)
+quatre_juillet <- select(quatre_juillet, origin, dest)
+```
+
+
+>>>>>>> cdad40856800179c8f550e806928c8b63e4e8a7a:3_wrangling_tidying_joining.Rmd
 ## creating new variables: `mutate()`
 
 > you want to create a *new* variable with some manipulation
