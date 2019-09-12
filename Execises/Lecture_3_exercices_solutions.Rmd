@@ -221,16 +221,3 @@ flights %>%
 
 ```
 
-
-# creating tidy data: reshape with `gather()` and `spread()`
-
-## Exercice 14
-
-> tidy world_bank_pop dataset so that 'year' is a variable and for each country and each year you have urban population and urban population growh only. Plot as a geom_line the total population for each country over the years.
-
-```{r ex14}
-
-  
-```
-
-

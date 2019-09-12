@@ -1,0 +1,90 @@
+---
+title: "Exercices Lecture 4"
+author: "Paolo Crosetto"
+date: "9/12/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# creating tidy data: reshape with `gather()` and `spread()`
+
+## Exercice 1
+
+> 
+
+```{r ex1}
+
+  
+```
+
+## Exercice 2
+
+> tidy world_bank_pop dataset so that 'year' is a variable and for each country and each year you have urban population and urban population growth only. Plot as a geom_line the total population for each country over the years.
+
+```{r ex2}
+
+  
+```
+
+
+## Exercice 3
+
+> tidy world_bank_pop dataset so that 'year' is a variable and for each country and each year you have urban population and urban population growth only. Plot as a geom_line the total population for each country over the years.
+
+```{r ex1}
+
+  
+```
+
+## Exercice 1
+
+> tidy world_bank_pop dataset so that 'year' is a variable and for each country and each year you have urban population and urban population growth only. Plot as a geom_line the total population for each country over the years.
+
+```{r ex1}
+
+  
+```
+
+## Exercice 1
+
+> tidy world_bank_pop dataset so that 'year' is a variable and for each country and each year you have urban population and urban population growth only. Plot as a geom_line the total population for each country over the years.
+
+```{r ex1}
+
+  
+```
+
+## Exercice 1
+
+> tidy world_bank_pop dataset so that 'year' is a variable and for each country and each year you have urban population and urban population growth only. Plot as a geom_line the total population for each country over the years.
+
+```{r ex1}
+
+  
+```
+
+## Exercice 1
+
+> tidy world_bank_pop dataset so that 'year' is a variable and for each country and each year you have urban population and urban population growth only. Plot as a geom_line the total population for each country over the years.
+
+```{r ex1}
+
+  
+```
+
+## Exercice 1
+
+> tidy world_bank_pop dataset so that 'year' is a variable and for each country and each year you have urban population and urban population growth only. Plot as a geom_line the total population for each country over the years.
+
+```{r ex1}
+
+  
+```
+
+
+
+
