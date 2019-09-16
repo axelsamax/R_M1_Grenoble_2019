@@ -1,0 +1,99 @@
+---
+title: "Exercices Lecture 4"
+author: "Paolo Crosetto"
+date: "9/12/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+
+```
+
+
+# Un graphique simple pour commencer et reviser
+
+> en utilisant le jeu de données `iris` créez un scatter plot de Sepal.Length contre Sepal.Width. Sauvegardez ce plot comme plot1
+
+```{r ex1}
+plot1 <- iris %>% 
+  ggplot(aes(Sepal.Length, Sepal.Width))+
+  geom_point()
+```
+
+> maintenat, ajoutez la couleur par espèce, sauvegardez dans plot_color
+
+```{r}
+plot_color <- plot1 + aes(color = Species)
+```
+
+> divisez le plot colorié en trois facets de façon horizontale
+
+```{r}
+plot1 + 
+  aes(color = Species) + 
+  facet_grid(.~Species)
+```
+
+> ajoutez un smooth standard à chacun des sousplots
+
+```{r}
+plot1 + 
+  aes(color = Species) + 
+  facet_grid(.~Species) +
+  geom_smooth()
+```
+
+> et maintenant, un smooth linéaire. sauvegardez ça comme `plot_base`
+
+```{r}
+plot_base <- plot1 + 
+  aes(color = Species) + 
+  facet_grid(.~Species) +
+  geom_smooth(method = "lm")
+```
+
+
+
+
+# changer le *look and feel* avec les fonctions theme_`
+
+
+> produisez 5 plots en utilisant les 5 parmi les thèmes par défaut de ggplot
+
+
+```{r plot1}
+plot_base + theme_bw()
+  
+```
+
+
+```{r plot2}
+plot_base + theme_classic()
+  
+```
+
+```{r plot3}
+
+plot_base + theme_minimal()
+  
+```
+
+```{r plot4}
+plot_base + theme_dark()
+  
+```
+
+```{r plot5}
+
+  plot_base + theme_linedraw()
+```
+
+
+
+
+
+
+
+

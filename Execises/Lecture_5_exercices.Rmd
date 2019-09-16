@@ -1,0 +1,151 @@
+---
+title: "Exercices Lecture 4"
+author: "Paolo Crosetto"
+date: "9/12/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+
+```
+
+
+# Un graphique simple pour commencer et reviser
+
+> en utilisant le jeu de données `iris` créez un scatter plot de Sepal.Length contre Sepal.Width. Sauvegardez ce plot comme plot1
+
+```{r ex1}
+
+```
+
+> maintenat, ajoutez la couleur par espèce, sauvegardez dans plot_color
+
+```{r}
+
+```
+
+> divisez le plot colorié en trois facets de façon horizontale
+
+```{r}
+
+```
+
+> ajoutez un smooth standard à chacun des sousplots
+
+```{r}
+
+```
+
+> et maintenant, un smooth linéaire. sauvegardez ça comme `plot_base`
+
+```{r}
+
+```
+
+
+
+
+# changer le *look and feel* avec les fonctions `theme_*`
+
+
+> produisez 5 plots en utilisant les 5 parmi les thèmes par défaut de ggplot
+
+
+```{r plot1}
+  
+```
+
+
+```{r plot2}
+  
+```
+
+```{r plot3}
+
+  
+```
+
+```{r plot4}
+
+  
+```
+
+```{r plot5}
+
+```
+
+
+# changer les couleurs, les axes, les symboles avec les fonctions `scale_*_*`
+
+> utilisez plot_color. Changez les couleurs de trois groupes selon votre plaisir
+
+```{r}
+
+```
+
+
+> utilisez plot_color. Mappez Species à des symboles (*shape*)
+
+```{r}
+
+```
+
+> avec le plot utilisant différents symboles, changez ce symboles
+
+```{r}
+plot_color + aes(shape = Species) + scale_shape_manual(values = c(1, 3, 21))
+```
+
+
+# quand faie quel type de plot? 
+
+**Note** utilisez le jeu de données **mpg**
+
+## **barplots**: x discrete, y count / frequency
+
+> plottez un barplot des *class* dans mpg; sauvegardez comme 'bar'
+
+```{r}
+
+```
+
+
+> utilisez 'bar'. coloriez le barplot selon la variable `drv`
+
+```{r}
+
+```
+
+> mettez les barres les unes à côté des autres  -- position_dodge
+
+```{r}
+
+```
+
+> mettez les barres les unes sur les autres -- position_stack
+
+```{r}
+
+```
+
+
+> mettez les barres les unes sur les autres et faites les sommer à 100% -- position_fill
+
+```{r}
+
+```
+
+> tournez le graphique de 90 degrés -- coord_flip
+
+```{r}
+
+```
+
+
+## 
+
+
+
+
