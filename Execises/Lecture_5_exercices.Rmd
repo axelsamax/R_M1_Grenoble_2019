@@ -95,7 +95,13 @@ library(tidyverse)
 > avec le plot utilisant différents symboles, changez ce symboles
 
 ```{r}
-plot_color + aes(shape = Species) + scale_shape_manual(values = c(1, 3, 21))
+
+```
+
+> changez les labels des axes et du plot en général -- `labs()`
+
+```{r}
+
 ```
 
 
@@ -144,8 +150,62 @@ plot_color + aes(shape = Species) + scale_shape_manual(values = c(1, 3, 21))
 ```
 
 
-## 
+## **line plots**: time-related continuous x, continuous y
+
+> utilisez `nycflights13`, le jeu de données `flights`. 1. calculez le nombre de départs par jour par aéroport newyorkais. plottez en line plot l'évolution sur l'année, en mappant la couleur à l'aéroport.
+
+
+```{r}
+library(nycflights13)
+
+  
+```
+
+> beaucoup trop d'info. groupez par mois et faites la meme chose 
+
+```{r}
+
+```
+
+
+> recap sur les fonctions `scale_x_y`: mappez le type de ligne à 'origin' et changez le type de ligne pour JFK à "solid"
+
+```{r}
+
+```
 
 
 
+## **slope charts**: time-related but discrete x, continuous y
+
+slope charts sont une version de line plots avec peu de points, et où il faut montrer le taux de changement sur des petits intervalles
+
+> utilisez les données `mpg`. 1. calculez la moyenne de consommation en autoroute pour chaque marque pour 1999 et 2008. 3. Créez un slope chart en utilisant `geom_line`. 3. changez le thème pour qu'i soit plus lisible
+
+```{r}
+
+```
+
+> le plot est toujours assez peu lisible. une façon de faire est de ramener à zéro l'année de référence, en éliminant le point de départ. Faites le point 1. de l'exo précédent. Puis, reformattez la base pour avoir une variable pour chaque année. Calculez la différence. Plottez un slope chart qui parte de zéro pour 1999 -- utilisez `geom_segment()`
+
+```{r}
+
+  
+```
+
+
+# Trois variables, deux discrètes, une continue: heatmap
+
+> utilisez flights. Quels sont les jours avec plus de traffic à NYC sur la totalité des aéroports? visualisez une grille avec jour et mois et coloriez chaque case selon le nombre de vols -- cela se fait avec `geom_tile()`. Rappel: avant il faut calculer le nombre de vols par jour et mois. 
+
+```{r}
+
+  
+```
+
+> même plot, mais cette fois ci par aéroport d'origine. 
+
+```{r}
+
+```
 
