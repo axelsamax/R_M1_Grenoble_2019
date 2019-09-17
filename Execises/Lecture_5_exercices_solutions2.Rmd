@@ -17,31 +17,33 @@ library(tidyverse)
 > en utilisant le jeu de données `iris` créez un scatter plot de Sepal.Length contre Sepal.Width. Sauvegardez ce plot comme plot1
 
 ```{r ex1}
-
+iris %>% 
+  ggplot(aes(x = Sepal.Length, y = Sepal.Width))+
+  geom_point() -> plot1
 ```
 
 > maintenat, ajoutez la couleur par espèce, sauvegardez dans plot_color
 
 ```{r}
-
+plot1 + aes(color = Species) -> plot_color
 ```
 
-> divisez le plot colorié en trois facets de façon horizontale
+> divisez le plot coloré en trois facets par Species de façon horizontale
 
 ```{r}
-
+plot_color + facet_grid(.~Species) -> plot_facet
 ```
 
 > ajoutez un smooth standard à chacun des sousplots
 
 ```{r}
-
+plot_facet + geom_smooth()
 ```
 
 > et maintenant, un smooth linéaire. sauvegardez ça comme `plot_base`
 
 ```{r}
-
+plot_facet + geom_smooth(method = "lm") -> plot_base
 ```
 
 
@@ -54,26 +56,32 @@ library(tidyverse)
 
 
 ```{r plot1}
-  
+  plot_base + theme_linedraw()
 ```
 
 
 ```{r plot2}
-  
+  plot_base + theme_bw()
 ```
 
 ```{r plot3}
-
-  
+plot_base + theme_classic()
 ```
 
 ```{r plot4}
-
+plot_base + theme_dark()
   
 ```
 
 ```{r plot5}
+plot_base + theme_minimal()
+```
 
+## davantage des thèmes
+
+```{r}
+library(ggthemes)
+plot_base + theme_solarized()
 ```
 
 
@@ -82,30 +90,50 @@ library(tidyverse)
 > utilisez plot_color. Changez les couleurs de trois groupes selon votre plaisir
 
 ```{r}
+plot_color + scale_color_manual(values = c("red", "blue", "pink"))
+```
 
+```{r}
+
+plot_color + scale_color_brewer(palette = "Set1")
 ```
 
 
 > utilisez plot_color. Mappez Species à des symboles (*shape*)
 
 ```{r}
-
+plot_color + aes(shape = Species)
 ```
 
 > avec le plot utilisant différents symboles, changez ce symboles
 
 ```{r}
-
+plot_color + 
+  aes(shape = Species) + 
+  scale_shape_manual(values = c(4, 3, 1)) +
+  scale_color_manual(values = c("red", "purple", "green"))
 ```
 
 > changez les labels des axes et du plot en général -- `labs()`
 
 ```{r}
+plot_base +
+  labs(x = "ça c'est l'axe des x",
+       y = "ça c'est Y",
+       title = "titre du plot",
+       subtitle = "soutitre",
+       caption = "@paolocrosetto -- sept2019")
+```
 
+> fine-tuning des thèmes 'à la main'
+
+```{r}
+plot_base +
+  theme(legend.position = "bottom")
 ```
 
 
-# quand faie quel type de plot? 
+# quand faire quel type de plot? 
 
 ## **barplots**: x discrete, y count / frequency
 
