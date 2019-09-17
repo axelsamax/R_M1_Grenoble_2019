@@ -215,9 +215,17 @@ slope charts sont une version de line plots avec peu de points, et où il faut m
 
 plot: https://pbs.twimg.com/media/EAVOkU7WwAIlX4U?format=png&name=small
 
-data: "https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-07-23/wildlife_impacts.csv"
+```{r}
+df <- read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-07-23/wildlife_impacts.csv")
+```
 
 
-> essayez de reproduire ce plot
 
+> essayez de reproduire ce plot (pas important si les couleurs, police, etc ne sont pas les mêmes)
+
+plot: https://pbs.twimg.com/media/D8QcVu7WsAArvFr?format=jpg&name=small 
+
+```{r}
+df <- read.csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-06-04/ramen_ratings.csv")
+```
 
