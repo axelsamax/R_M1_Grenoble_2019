@@ -1,0 +1,136 @@
+---
+title: "Exercices Lecture 5"
+author: "Paolo Crosetto"
+date: "9/12/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(broom)
+
+```
+
+# Intro
+
+Jusque là on a utilisé R pour *manipuler* et ùrepresenter graphiquement* des *jeux de données* (en langage R, des data.frame). Mais R est né et a été développé pincipalement comme un langage de *statistique*. ujourd'hui on va donc s'occuper de cela: comment faire des statistiques simples (correlation, model linéaire, probit/logit) avec R. 
+
+POur chaque commande / outil statistique qu'on couvrira aujourd'hui, l'exposition va se diviser en deux parties: 
+
+1. **statistiques avec base R**. Pour faire des stats on va abandonner de façon temporaire le *tidyverse* et utiliser le système R de base. En soi cela ne vous changera pas grand chose, mais vous verrez que les résultats des différentes fonctions (tests, régressions, etc...) ne sont aps dans un format *tidy* -- n'ont pas une variable par colonne et une observation par ligne -- et ne sont donc pas prêts tout de suite à être utilisés avec ce qu'on a appris jusque là (filter, select, ggplot...).
+
+2. **lien stats de base -> tidyverse**. Heureusement il y a des solutions. On va donc explorer le package `broom` qui permet de 'faire le ménage' (broom signifie *balai* en anglais) et de transofrmer les résultats des régressions en data.frames bien ordonnés, qu'on pourra utiliser pour, par exemple, visualiser les résultats de façon graphique. On pourra aussi utiliser la puissance du `%>%` et de `group_by()` pour mettre en place de façon rapide des analyses par groupe et les visualiser.
+
+# Régression linéaire.
+
+> utilisez les données `airquality` -- il s'agit de la qualité de l'air à NYC sur un certian interval de temps en 1973.
+> estimez une régression linéaire qui explique le niveau d'Ozone par la température, le vent et la radiation solaire.
+> sauvegardez le résultat de la régression dans un objet, `firstreg`. 
+
+```{r ex1}
+firstreg <- lm(Ozone ~ Temp + Wind + Solar.R, data = airquality)
+  
+```
+
+> explorez `firstreg` dans votre environnement. Il y a beaucoup de sous objets et sous parties. Essayez de visualiser le tableua récapitulatif. Utilisez `summary`
+
+```{r}
+summary(firstreg)
+```
+
+> il y d'autres sous objets que vous pouvez explorer. Si vous plottez l'objet, cela donne tous les diagnostics de régression (on ne rentre pas dans les détails ici). Notez que les plots ne sont aps des ggplots, mais ont un air très différents; il s'agit des plot produits par Base R.
+
+```{r}
+plot(firstreg)
+```
+
+> vous pouvez accéder au coéfficients avec la fonction `coef()`
+
+```{r}
+coef(firstreg)
+```
+
+> tout cela n'est pas très pratique parce qu'on ne peut pas accéder aux données de la régression de façon *tidy*. On va donc utiliser `broom` pour le faire. 
+
+`broom` dispose de trois fonctions. 
+
+1. `tidy` retourne les coefficients, valeurs p et intervaux de confiance de la régression en format data.frame. 
+2. `glance` retourne les indicateurs de diagnostic de la régression en format data.frame (sur une ligne)
+3. `augment` retourne les données initiales 'augmentées' avec les valuers estimées par la régression.
+
+
+## tidy 
+
+voilà le output de `tidy`:
+
+```{r}
+airquality %>% 
+  lm(Ozone ~ Temp + Wind + Solar.R, data = .) %>% 
+  tidy()
+```
+
+> et voilà, nos résultats sont maintenant en forme de data.frame et peuvent donc être utilisés pour nos analyses, plots... notamment: faites un plot des coefficients de la régression avec des barres d'erreur
+
+```{r}
+airquality %>% 
+  lm(Ozone ~ Temp + Wind + Solar.R, data = .) %>% 
+  tidy() %>% 
+  ggplot(aes(x = term, y = estimate, ymin = estimate - std.error, ymax = estimate + std.error))+
+  geom_point()+
+  geom_errorbar(width = 0.3)+
+  theme_minimal()+
+  geom_hline(yintercept = 0, color = 'red')+
+  coord_flip()
+```
+
+## 2. augment
+
+augment ajoute les valuers estimées à notre data.frame. Cela nous permet, par exemple, de voir la régression de façon visuelle (sur deux variables uniquement) en plottant les points intiaux et les points estimés. On va faire cela par étapes, et pour la rélation Ozone ~ Temp
+
+### 1. les points originaux de la rélation Ozone ~ Temp
+
+```{r}
+plot1 <- airquality %>% 
+  lm(Ozone ~ Temp , data = .) %>% 
+  augment() %>% 
+  ggplot(aes(x = Temp, y = Ozone))+
+  geom_point()+
+  theme_minimal()
+plot1
+```
+
+### 2. on ajoute les points estimés 
+
+(attention: ils seront sur une droite. Surpris?)
+
+```{r}
+plot1 + geom_point(aes(y = .fitted), color = 'red') ## note: on change de y mais on garde le même x
+```
+
+Vu qu'ils suivent une ligne droite, on peut aisément les plotter comme une `geom_line()`
+
+```{r}
+plot2 <- plot1 + geom_line(aes(y = .fitted), color = 'red')
+plot2
+```
+
+Pour mieux visualiser les résidus on lie chaque point réel à sa prédiction par un `geom_segment()`
+
+```{r}
+plot2 + 
+  geom_segment(aes(xend = Temp, yend = .fitted), alpha = 0.2)
+```
+
+
+## glance
+
+glance est moins immédiatement utile mais le deviendra quand on pourra comparer différents modèles statistiques les uns à côté des autres. voilà ce que `glance()` donne
+
+```{r}
+airquality %>% 
+  lm(Ozone ~ Temp + Wind + Solar.R, data = .) %>% 
+  glance()
+```
+
+
