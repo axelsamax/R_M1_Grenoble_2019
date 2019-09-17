@@ -184,7 +184,7 @@ df %>%
 
 ## babynames ex2: 'Mary vs. 'Anna' (`filter` + `ggplot`)
 
-> plottez (geom_line) le nombre de Mary et de Anna aux EE.UU. sur toute la longueur des données. Quand est-ce que Anna est devenue plus populaire que Mary (si jamais)? COloriez différemment les lignes pour Anna et Mary
+> plottez (geom_line) le nombre de Mary et de Anna aux EE.UU. sur toute la longueur des données. Quand est-ce que Anna est devenue plus populaire que Mary (si jamais)? Coloriez différemment les lignes pour Anna et Mary
 
 ```{r baby2}
 df %>% 
