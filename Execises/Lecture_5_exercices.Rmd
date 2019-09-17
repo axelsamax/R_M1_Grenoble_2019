@@ -107,9 +107,9 @@ library(tidyverse)
 
 # quand faie quel type de plot? 
 
-**Note** utilisez le jeu de données **mpg**
-
 ## **barplots**: x discrete, y count / frequency
+
+**Note** utilisez le jeu de données **mpg**
 
 > plottez un barplot des *class* dans mpg; sauvegardez comme 'bar'
 
@@ -208,4 +208,16 @@ slope charts sont une version de line plots avec peu de points, et où il faut m
 ```{r}
 
 ```
+
+# A vous de jouer. 
+
+> essayez de reproduire ce plot (pas important si les couleurs, police, etc ne sont pas les mêmes)
+
+plot: https://pbs.twimg.com/media/EAVOkU7WwAIlX4U?format=png&name=small
+
+data: "https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-07-23/wildlife_impacts.csv"
+
+
+> essayez de reproduire ce plot
+
 
