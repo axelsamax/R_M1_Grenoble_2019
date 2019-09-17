@@ -24,6 +24,9 @@ POur chaque commande / outil statistique qu'on couvrira aujourd'hui, l'expositio
 
 # Régression linéaire.
 
+
+## Base R
+
 > utilisez les données `airquality` -- il s'agit de la qualité de l'air à NYC sur un certian interval de temps en 1973.
 > estimez une régression linéaire qui explique le niveau d'Ozone par la température, le vent et la radiation solaire.
 > sauvegardez le résultat de la régression dans un objet, `firstreg`. 
@@ -51,6 +54,8 @@ plot(firstreg)
 coef(firstreg)
 ```
 
+## Broom
+
 > tout cela n'est pas très pratique parce qu'on ne peut pas accéder aux données de la régression de façon *tidy*. On va donc utiliser `broom` pour le faire. 
 
 `broom` dispose de trois fonctions. 
@@ -60,7 +65,7 @@ coef(firstreg)
 3. `augment` retourne les données initiales 'augmentées' avec les valuers estimées par la régression.
 
 
-## tidy 
+### tidy 
 
 voilà le output de `tidy`:
 
@@ -84,7 +89,7 @@ airquality %>%
   coord_flip()
 ```
 
-## 2. augment
+### 2. augment
 
 augment ajoute les valuers estimées à notre data.frame. Cela nous permet, par exemple, de voir la régression de façon visuelle (sur deux variables uniquement) en plottant les points intiaux et les points estimés. On va faire cela par étapes, et pour la rélation Ozone ~ Temp
 
@@ -123,7 +128,7 @@ plot2 +
 ```
 
 
-## glance
+### glance
 
 glance est moins immédiatement utile mais le deviendra quand on pourra comparer différents modèles statistiques les uns à côté des autres. voilà ce que `glance()` donne
 
@@ -131,6 +136,96 @@ glance est moins immédiatement utile mais le deviendra quand on pourra comparer
 airquality %>% 
   lm(Ozone ~ Temp + Wind + Solar.R, data = .) %>% 
   glance()
+```
+
+
+
+
+## La puissance du tidyverse: plusieurs régressions à la fois, par groupe
+
+Avec le tidyverse on peut lancer plusieurs régressions à la fois, et en visualiser les résultats avec un seul ggplot. On va travailler avec la base de données `gapminder`.
+
+### gapminder
+
+gapminder est une base de données qui contient l'espérence de vie par pays sur plusieurs années. Il faut installer le package gapminder
+
+```{r}
+library(gapminder)
+df <- gapminder
+```
+
+On va commencer par explorer les données. Comment l'espérance de vie a-t-elle évolué dans le temps pour tous les pays? un ggplot
+
+```{r}
+df %>% 
+  ggplot(aes(x = year, y = lifeExp, color = country, group = country))+
+  geom_line()+
+  theme(legend.position = "none")
+```
+
+ça, c'est ce qu'on appelle un 'spaghetti plot' -- on n'y comprend rien. On va ajouter des facets et colorier par continent. 
+
+```{r}
+df %>% 
+  ggplot(aes(x = year, y = lifeExp, color = continent, group = country))+
+  geom_line()+
+  theme(legend.position = "none")+
+  facet_wrap(~continent)+
+  theme_minimal()
+```
+
+L'espérance de vie à l'air d'avoir augmenté un peu partout. Mais pourquoi? s'agit-il d'un effet de richesse -- plus on est riches, plus long on vit?
+
+On va faire une régression pour cela. On sait comment faire:
+
+```{r}
+df %>% 
+  lm(lifeExp ~ gdpPercap, data = .) %>% 
+  tidy()
+```
+
+cela à l'air très significatif. On va faire un plot en utilisant `augment` pour vérifier de façon visuelle
+
+```{r}
+df %>% 
+  lm(lifeExp ~ gdpPercap, data = .) %>% 
+  augment() %>% 
+  ggplot(aes(x = gdpPercap, y = lifeExp))+
+  geom_point()+
+  geom_line(aes(y = .fitted), color = 'red')+
+  theme_minimal()
+```
+
+pourquoi le fit est si mauvais? parce que les données contiennent une observation par pays **par an** et dans ce plot on ne tient pas en compte cela. 
+
+On peut bien se demander: est-ce que le coefficient de la régression a varié au fil du temps? autrement dit: peut-être dans les années 50 il y avait une forte corrélation entre le PIB et l'augmentation de l'espérance de vie, mais cette corrélation est venue moins dans les années récentes. 
+
+Pour répondre à cela il faut faire une régression par an, et après regarder (plotter) les coefficients et leurs intervaux de confiance pour voir si l'effet est toujours bien vivant ou il s'estompe. De plus, le faire par continent aiderait. Peut-on faire cela?
+
+malheureusement, une approche simple et naive (groupez puis faites le lm) ne marche pas. 
+
+```{r}
+df %>% 
+  group_by(year, continent) %>% 
+  lm(lifeExp ~ gdpPercap, data = .) %>% 
+  tidy()
+```
+
+comment faire?
+
+il faut passer par un `nest`. C'est quoi? c'est une fonction qui 'découpe' le data.frame suivant group_by() et met le morceau de data.frame découpé comme s'il était une variable dans le data.frame d'origine. 
+
+```{r}
+nested <- df %>% 
+  group_by(year, continent) %>% 
+  nest()
+```
+
+avec ce 'nested' data.frame on peut appliquer un `lm` pour chaque élément, en utilisant chaque découpe de data.frame comme si elle était une variable. 
+
+```{r}
+nested %>% 
+  mutate(model = map(~ lm(lifeExp ~ gdpPercap, data = .)))
 ```
 
 
