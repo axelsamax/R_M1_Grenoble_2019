@@ -1,6 +1,6 @@
 ---
 title: "Getting data out of the web with R"
-subtitle: "Intro to R, lecture 4"
+subtitle: "Intro to R, lecture 7"
 author: "Paolo Crosetto"
 date: "`r Sys.Date()`"
 output:
@@ -22,7 +22,22 @@ knitr::opts_chunk$set(tidy = FALSE, cache.extra = packageVersion('tufte'))
 options(htmltools.dir.version = FALSE)
 ```
 
-# 1. (Quelque chose qui n'a rien à voir)
+# 1. Importer des données externes
+
+Jusque là on a toujours utilisé des données qui étaint présentes sur R (mpg, airquality, iris) ou qu'on pouvait importer par des packages (nycflights, gapminder). Mais de façon générale les données dans le monde réel sont disponibles dans des fichiers et sous des différents formats. 
+
+Pour importer des données dans le tidyverse on utilise une série de fonctions de la famille `read_*()` où on spécifie le type de données qu'on importe. 
+
+Par exemple prenons les données des **TidyTuesdays** que vous trouvez ici: https://github.com/rfordatascience/tidytuesday/blob/master/README.md 
+
+Example: retards de la SNCF
+
+```{r}
+df <- read_csv("https://github.com/rfordatascience/tidytuesday/blob/master/data/2019/2019-02-26/small_trains.csv")
+```
+
+
+# 2. (Quelque chose qui n'a rien à voir)
 
 ## (mais qui porte sur les plots)
 ## (et fait office de révision de ce qu'on a fait jusque là)
@@ -56,6 +71,7 @@ df %>% select(dataset) %>% distinct() %>% kable()
 ```
 
 Ceci dit, quelle forme ont ces 13 différents jeux de données? On peut calculer quelques statistiques de base ^[là on veut uniquement la moyeen et la variance -- le code est simple. On introduit la fonction *summarise_at()* qui est comme *summarise()* qu'on connait mais qui applique une liste de fonctions (funs) à une liste de variables (x,y) et qui permet de façon plus compacte de faire ce qu'on ferait avec plusieurs appels à summarise() en séquence]
+
 ```{r, message=FALSE}
 df %>% 
   group_by(dataset) %>% 
@@ -77,6 +93,7 @@ df %>%
 ```
 
 Là on voit que chaque sous-jeu de données à la même moyenne, la même variance, et presque la même corrélation. S'agit-il donc de données qui sont tout à fait les mêmes? Si on fait des tests, on retrouve bien évidemment la même chose -- un t.test de différence des moyennes donnerait des résultats forts dans le sens d'une absence de différence. ^[je vous laisse cela comme exercice: mais vraiment, en a-t-on besoin? Si moyenne est quasiment la même et la variance est la même, n'importe quel test retournerait un p-value proche de 1. J'en fais un comme exemple. J'utilise *unlist()* parce que kable() travaille avec des data.frame et t.test a comme output une liste -- détails, pas trop important]
+
 ```{r, message=FALSE}
 t.test(df$x[df$dataset=="away"],df$x[df$dataset=="bullseye"]) %>% 
   unlist() %>% 
@@ -84,6 +101,7 @@ t.test(df$x[df$dataset=="away"],df$x[df$dataset=="bullseye"]) %>%
 ```
 
 Pour résumer: 13 jeux de données, même stats, les tests nous les donnent tous égaux... mais le sont-ils vraiment? essayons de les visualiser! ^[facet_wrap() est une sequence monodimensionelle de facets, qui vont a la ligne automatiqeument si plus d'espace]
+
 ```{r, message=FALSE, fig.width = 12, fig.height = 10, fig.fullwidth = TRUE}
 df %>% 
   ggplot(aes(x,y)) +
@@ -95,7 +113,9 @@ Message à retenir? Simple:
 
 > Toujours visualiser les données, parce que les statistiques descriptives c'est bien, mais elle cachent souvent plus de ce qu'elles révèlent!
 
-# 2. Extraire des données du *web*
+
+
+# 3. Extraire des données du *web*
 
 ## Quelques bases "théoriques"
 
