@@ -345,7 +345,7 @@ On va tester deux quesitons:
 ## Base R
 
 ```{r}
-
+  
 ```
 
 on ne peut pas rejeter l'hypothèse que l'espérance de vie soit inférieure à 60 -- donc non, pris dans son esnemble l'espérance de vie dans el monde n'est pas supérieure à 60 ans (sur la période 1952-2012); la moyenne est juste inférieure à 60 et la différence avec 60 est significative.
