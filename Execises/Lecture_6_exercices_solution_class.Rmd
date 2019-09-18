@@ -59,7 +59,10 @@ coef(firstreg)
 > faites une régression de Ozone sur Wind en utilisant Base R et affichez son `summary()`
 
 ```{r}
-
+charles <- lm(Ozone ~ Wind, data = airquality)
+summary(charles)
+plot(charles)
+coef(charles)
 ```
 
 ## Broom
@@ -68,7 +71,7 @@ coef(firstreg)
 
 `broom` dispose de trois fonctions. 
 
-1. `tidy` retourne les coefficients, valeurs p et intervaux de confiance de la régression en format data.frame. 
+1. `tidy` retourne les coefficients, valeurs p et intervals de confiance de la régression en format data.frame. 
 2. `glance` retourne les indicateurs de diagnostic de la régression en format data.frame (sur une ligne)
 3. `augment` retourne les données initiales 'augmentées' avec les valuers estimées par la régression.
 
@@ -78,23 +81,36 @@ coef(firstreg)
 voilà le output de `tidy`:
 
 ```{r}
-
+airquality %>% 
+  lm(Ozone ~ Wind + Solar.R + Temp, data = .) %>% 
+  tidy() -> lmtidy
 ```
 
 > et voilà, nos résultats sont maintenant en forme de data.frame et peuvent donc être utilisés pour nos analyses, plots... notamment: faites un plot des coefficients de la régression avec des barres d'erreur
 
 ```{r}
-
+lmtidy %>% 
+  filter(term != "(Intercept)") %>% 
+  ggplot(aes(x = term, y = estimate))+
+  geom_point()+
+  geom_errorbar(aes(ymin = estimate - std.error, 
+                    ymax = estimate + std.error), width = 0.2)+
+  theme_minimal()+
+  geom_hline(yintercept = 0, color = 'red')+
+  coord_flip()
 ```
 
 ### 2. augment
 
-augment ajoute les valuers estimées à notre data.frame. Cela nous permet, par exemple, de voir la régression de façon visuelle (sur deux variables uniquement) en plottant les points intiaux et les points estimés. On va faire cela par étapes, et pour la rélation Ozone ~ Temp
+`augment` ajoute les valuers estimées à notre data.frame. Cela nous permet, par exemple, de voir la régression de façon visuelle (sur deux variables uniquement) en plottant les points intiaux et les points estimés. On va faire cela par étapes, et pour la rélation Ozone ~ Temp
 
 ### 1. les points originaux de la rélation Ozone ~ Temp
 
 ```{r}
-
+airquality %>% 
+  ggplot(aes(x = Temp, y = Ozone))+
+  geom_point()+
+  theme_classic()
 ```
 
 ### 2. on ajoute les points estimés 
@@ -102,19 +118,22 @@ augment ajoute les valuers estimées à notre data.frame. Cela nous permet, par 
 (attention: ils seront sur une droite. Surpris?)
 
 ```{r}
-
-```
-
-Vu qu'ils suivent une ligne droite, on peut aisément les plotter comme une `geom_line()`
-
-```{r}
-
+airquality %>% 
+  lm(Ozone ~ Temp, data = .) %>% 
+  augment() %>% 
+  ggplot(aes(x = Temp, y = Ozone))+
+  geom_point()+
+  geom_line(aes(y = .fitted), color = 'red')+
+  theme_minimal() -> plotreg
+plotreg
 ```
 
 Pour mieux visualiser les résidus on lie chaque point réel à sa prédiction par un `geom_segment()`
 
 ```{r}
-
+plotreg +
+  geom_segment(aes(x = Temp, xend = Temp, y = Ozone, yend = .fitted), 
+               alpha = 0.2)
 ```
 
 ### exercice
