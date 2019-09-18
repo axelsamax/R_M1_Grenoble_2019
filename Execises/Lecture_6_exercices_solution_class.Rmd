@@ -141,7 +141,9 @@ plotreg +
 > faites une régression de Ozone sur Wind en utilisant le tidyverse et `tidy`
 
 ```{r}
-
+airquality %>% 
+  lm(Ozone ~ Wind, data = .) %>% 
+  tidy()
 ```
 
 
@@ -150,7 +152,9 @@ plotreg +
 glance est moins immédiatement utile mais le deviendra quand on pourra comparer différents modèles statistiques les uns à côté des autres. voilà ce que `glance()` donne
 
 ```{r}
-
+airquality %>% 
+  lm(Ozone ~ Wind, data = .) %>% 
+  glance()
 ```
 
 
@@ -165,7 +169,7 @@ Avec le tidyverse on peut lancer plusieurs régressions à la fois, et en visual
 gapminder est une base de données qui contient l'espérence de vie par pays sur plusieurs années. Il faut installer le package gapminder
 
 ```{r}
-#install.packages(gapminder)
+#install.packages("gapminder")
 library(gapminder)
 df <- gapminder
 ```
@@ -173,13 +177,20 @@ df <- gapminder
 On va commencer par explorer les données. Comment l'espérance de vie a-t-elle évolué dans le temps pour tous les pays? un ggplot
 
 ```{r}
-
+df %>% 
+  ggplot(aes(x = year, y = lifeExp, group = country))+
+  geom_line()
 ```
 
 ça, c'est ce qu'on appelle un 'spaghetti plot' -- on n'y comprend rien. On va ajouter des facets et colorier par continent. 
 
 ```{r}
-
+df %>% 
+  ggplot(aes(x = year, y = lifeExp, 
+             color = continent, group = country))+
+  geom_line()+
+  facet_wrap(~continent)+
+  theme(legend.position = "none")
 ```
 
 L'espérance de vie à l'air d'avoir augmenté un peu partout. Mais pourquoi? s'agit-il d'un effet de richesse -- plus on est riches, plus long on vit?
@@ -187,13 +198,21 @@ L'espérance de vie à l'air d'avoir augmenté un peu partout. Mais pourquoi? s'
 On va faire une régression pour cela. On sait comment faire:
 
 ```{r}
-
+df %>% 
+  lm(lifeExp ~ gdpPercap, data = .) %>% 
+  tidy()
 ```
 
 cela à l'air très significatif. On va faire un plot en utilisant `augment` pour vérifier de façon visuelle
 
 ```{r}
-
+df %>% 
+  lm(lifeExp ~ gdpPercap, data = .) %>% 
+  augment() %>% 
+  ggplot(aes(x = gdpPercap, y = lifeExp))+
+  geom_point()+
+  geom_line(aes(y = .fitted), color = 'red')+
+  theme_minimal()
 ```
 
 pourquoi le fit est si mauvais? parce que les données contiennent une observation par pays **par an** et dans ce plot on ne tient pas en compte cela. 
@@ -207,7 +226,16 @@ Pour répondre à cela il faut faire une régression par an, et après regarder 
 Malheureusement, une approche simple et naive (groupez puis faites le lm) ne marche pas. 
 
 ```{r}
+# ne marche pas -- lm() ne connait pas structure par groupe
+# df %>% 
+#   group_by(year, continent) %>% 
+#   lm(lifeExp ~ gdpPercap, data = .) %>% 
+#   tidy()
 
+# ne marche pas, summarise gère des fonctions qui retournent une seule valeur
+# df %>% 
+#   group_by(year, continent) %>% 
+#   summarise(model = lm(lifeExp ~ gdpPercap, data = .))
 ```
 
 comment faire?
@@ -215,25 +243,29 @@ comment faire?
 il faut passer par un `nest`. C'est une fonction qui 'découpe' le `data.frame` suivant `group_by()` et met le morceau de data.frame découpé comme s'il était une variable dans le data.frame d'origine. 
 
 ```{r}
-
+df %>% 
+  group_by(year, continent) %>% 
+  nest() -> nested
 ```
 
 avec ce 'nested' data.frame on peut appliquer un `lm` pour chaque élément, en utilisant chaque découpe de data.frame comme si elle était une variable. 
 
 ```{r}
-
+nested %>% 
+  mutate(model = map(data, ~lm(lifeExp ~ gdpPercap, data = .))) -> model
 ```
 
 
-En regardant le nouvel objet crée on se rend compte qu'on a maintenant une nouvelle colonne, "model", qui contient le modèle. En effet il contient le même contenu qu'un appel à `lm`, mait l'appe a été 
+En regardant le nouvel objet crée on se rend compte qu'on a maintenant une nouvelle colonne, "model", qui contient le modèle. En effet il contient le même contenu qu'un appel à `lm`, mait l'appel a été 
 
-1. fait sur une parte des données, et en particulier sur une année/continent, et
+1. fait sur une partie des données, et en particulier sur une année/continent, et
 2. il est stocké dans une variable.
 
 Maintenant il faut extraire les informations contenues dans le modèle et les stocker dans une nouvelle variable. On peut faire cela avec, par exemple `tidy()`. 
 
 ```{r}
-
+model %>% 
+  mutate(results = map(model, tidy)) -> resultat
 ```
 
 Si on regarde l'objet obtenu (`result`) on peut voir qu'une colonne 'result' a été crée, et qu'ele contient un data.frame entire (le résultat d'un appel à `tidy` si les données n'étaient que celles contenues dans la variable `data` pour chaque ligne du tableau).
@@ -241,7 +273,9 @@ Si on regarde l'objet obtenu (`result`) on peut voir qu'une colonne 'result' a �
 Il ne nous reste qu'à *extraire* cette information, en utilisant le verbe complément de `nest()`: `unnest()`:
 
 ```{r}
-
+resultat %>% 
+  unnest(results) -> final
+final
 ```
 
 et voilà. On a obtenu un objet `final` qui contient une estimation *par ligne* -- dans ce cas par année/continent. 
@@ -249,7 +283,15 @@ et voilà. On a obtenu un objet `final` qui contient une estimation *par ligne* 
 on peut maintenant avec aise plotter les résultats et voir si notre idée que la rélation entre PIB et espérance de vie s'estompe avec le temps est soutenue par les données. 
 
 ```{r}
-
+final %>% 
+  filter(term == "gdpPercap") %>% 
+  ggplot(aes(x = year, y = estimate, color = continent))+
+  geom_errorbar(aes(ymin = estimate - std.error, ymax = estimate + std.error), width = 0.1)+
+  geom_point()+
+  facet_wrap(~continent, scales = "free")+
+  geom_hline(yintercept = 0, color = 'red')+
+  coord_flip()+
+  theme_minimal()
 ```
 
 rappel: un point dans ce plot ne répresente pas les données mais une estimation de l'effet du PIB sur l'espérance de vie. L'intuition que la rélation soit moins forte au fil du temps tient bien la route pour l'Europe et les deux amériques; pas pour le reste du monde. 
@@ -257,7 +299,7 @@ rappel: un point dans ce plot ne répresente pas les données mais une estimatio
 ## sommaire de la méthode
 
 1. groupez le data frame
-2. `nest()`: une colonne est créée qui contient tout le data.frame rélatf à un groupe
+2. `nest()`: une colonne est créée qui contient tout le data.frame rélatif à un groupe
 3. appliquer le modèle linéaire en passant par `map()` qui applique une fonction a des données, ligne par ligne
 4. utiliser `tidy()` pour extraire les données du modèle en format data.frame et les stocker dans une colonne;
 5. `unnest()`
@@ -268,8 +310,8 @@ voilà le code qui saute les passage intermédiaires et qui peut donc être reut
 ```{r}
 ## code dans une seule pipe
 df %>% 
-  group_by(year, continent)                                     %>% # groupement désiré
-  nest()                                                        %>% # création de la colonne qui contient les découpes de data.fram
+  group_by(country)       %>% # groupement désiré
+  nest()                          %>% # création de la colonne qui contient les découpes de data.fram
   mutate(model = map(data, ~lm(lifeExp ~ gdpPercap, data = .))) %>% # application du modèle ligne par ligne
   mutate(results = map(model, tidy))                            %>% # nettoyage des résultats du modèle
   unnest(results)                                 
@@ -281,10 +323,17 @@ les données sont prêtes à être utilisées.
 ### exercice
 
 > faites une régression de pop sur year pour chaque continent -- cela estime le taux de croissance moyen linéaire sur la période, par continent. Utilisez la méthode `nest` décrite ci-dessus. 
+**Quel continent avait la croissance la plus élevée sur la période?**
 
 ```{r}
-
+df %>% 
+  group_by(continent)       %>% # groupement désiré
+  nest()                          %>% # création de la colonne qui contient les découpes de data.fram
+  mutate(model = map(data, ~lm(pop ~ year, data = .))) %>% # application du modèle ligne par ligne
+  mutate(results = map(model, tidy))                            %>% # nettoyage des résultats du modèle
+  unnest(results)  
 ```
+
 
 
 # Corrélation
@@ -296,29 +345,33 @@ On peut suivre la même démarche pour des corrélations. Une corrélation indiq
 une corrélation se fait simplement avec `cor()`. 
 
 ```{r}
-
+cor(gapminder$lifeExp, gapminder$gdpPercap)
 ```
 
 par contre si on veut tester la significativité statistique de cette corrélation il faut utiliser `cor.test()`:
 
 ```{r}
-
+objetcorr <- cor.test(gapminder$lifeExp, gapminder$gdpPercap)
 ```
 
 notez que `cor()` retounre tout simplement une valeur; `cor_test()` retourne en revanche une liste, un objet complexe et avec plusieurs attributs, exactement comme `lm`. 
 
 ## Tidyverse, juste corrélation
 
-La syntaxe du tidyverse est assez simple parce qu'elle peut utiliser directement `sumamrise`. Summarise marche avec toute fonction qui prend un vecteur et retourne un nombre. 
+La syntaxe du tidyverse est assez simple parce qu'elle peut utiliser directement `summarise`. Summarise marche avec toute fonction qui prend un vecteur et retourne un nombre. 
 
 ```{r}
+gapminder %>% 
+  summarise(correlation = cor(lifeExp, gdpPercap))
 
 ```
 
 Du fait que `cor()` ne retourne qu'une seule valuer, on peut appliquer directement le `group_by()` et tout va bien; par exemple corrélation par continent:
 
 ```{r}
-
+gapminder %>% 
+  group_by(continent) %>% 
+  summarise(correlation = cor(lifeExp, gdpPercap))
 ```
 
 La corrélation est bcp plus forte pour Europe et Océanie. 
@@ -328,7 +381,8 @@ La corrélation est bcp plus forte pour Europe et Océanie.
 En revanche si on veut utiliser cor.test pour connaitre la valuer p de notre corrélation, on ne peut pas utiliser directement l'approche naïve -- parce que `summarise` ne sait pas quoi faire avec les nombreuses dimensions de l'objet retourné par la fonction `cor.test()`. L'approche naïve ne marche pas:
 
 ```{r}
-
+#gapminder %>% 
+#  summarise(test = cor.test(lifeExp, gdpPercap))
 ```
 
 et voilà, R râle parce que `summmarise` s'attend à une seule valeur et en reçoit 9 (et chacune d'entre elles est un objet complexe). 
@@ -337,7 +391,12 @@ Il faut à nouveau passer par `nest`. Heureusement on a déjà le code, il suffi
 
 
 ```{r}
-                            
+gapminder %>% 
+  group_by(continent) %>% 
+  nest() %>% 
+  mutate(model = map(data, ~cor.test(.$lifeExp, .$gdpPercap))) %>% 
+  mutate(result = map(model, tidy)) %>% 
+  unnest(result)
   
 ```
 
@@ -348,7 +407,22 @@ et voilà, on a les estimations (elles sont les mêmes que toute à l'heure) mai
 > calculez l'interval de confiance de la corrélation entre lifeExp et gdpPercap pour chaque pays pour chaque année. Plottez les résultats pour la France, le Japon et la Bolivie au fil du temps. 
 
 ```{r}
+## je lance les corrélations et sauvegarde
+gapminder %>% 
+  group_by(country) %>% 
+  nest() %>% 
+  mutate(model = map(data, ~cor.test(.$lifeExp, .$gdpPercap))) %>% 
+  mutate(result = map(model, tidy)) %>% 
+  unnest(result) -> correlations
 
+# je fais le plot
+correlations %>% 
+  filter(country %in% c("Italy", "China", "Japan", "Bolivia")) %>% 
+  ggplot(aes(x = country, y = estimate, ymin = conf.low, ymax = conf.high))+
+  geom_point()+
+  geom_errorbar(width = 0.2)+
+  coord_flip()+
+  theme_linedraw()
 ```
 
 
@@ -356,7 +430,7 @@ et voilà, on a les estimations (elles sont les mêmes que toute à l'heure) mai
 
 le test T à une variable sert à tester si la moyenne d'une variable est significativement différent d'une valeur de référence (par défaut: 0); à deux variables à tester si la moyenne d'une variable est statistiquement différente de l'autre. 
 
-On va tester deux quesitons:
+On va tester une quesiton:
 
 1. peut on dire que l'espérance de vie à la naissance est > 60 dans le monde?
 
@@ -364,7 +438,7 @@ On va tester deux quesitons:
 ## Base R
 
 ```{r}
-
+t.test(gapminder$lifeExp, mu = 60, alternative = "greater")
 ```
 
 on ne peut pas rejeter l'hypothèse que l'espérance de vie soit inférieure à 60 -- donc non, pris dans son esnemble l'espérance de vie dans el monde n'est pas supérieure à 60 ans (sur la période 1952-2012); la moyenne est juste inférieure à 60 et la différence avec 60 est significative.
@@ -374,20 +448,30 @@ Mais peut-être que cet âge de 60 a été dépassé à des temps différents da
 Si on ne voulait qu'afficher l'âge moyen par continent et année, il suffit un appel à `summarise`:
 
 ```{r}
-
+gapminder %>% 
+  group_by(continent, year) %>% 
+  summarise(meanlifeexp = mean(lifeExp, na.rm = T))
 ```
 
-mais si on veut tester la différence apr rapport à 60 avec in test T il faut passer par un `nest()`, comme on a vu pour le `lm` et la `cor`relation:
+mais si on veut tester la différence par rapport à 60 avec in test T il faut passer par un `nest()`, comme on a vu pour le `lm` et la `cor`relation:
 
 ```{r}
 ## code dans une seule pipe
-
+gapminder %>% 
+  group_by(continent, year) %>% 
+  nest() %>% 
+  mutate(ttest = map(data, ~t.test(.$lifeExp, mu = 60, alternative = "greater"))) %>% 
+  mutate(result = map(ttest, tidy)) %>% 
+  unnest(result) -> ttest_gap
 ```
 
 et avec un plot on obtient la réponse:
 
 ```{r}
-
+ttest_gap %>% 
+  ggplot(aes(x = year, y = p.value, color = continent))+
+  geom_point()+
+  facet_grid(continent~.)
 ```
 
-réponse: pour l'Afrique , l'espérance de vie à la naissance n'a jamais été supérieure à 60 (les valeurs p sont toujours 1, ce qui indique qu'on ne peut pas rejeter l'hypothèse que la moyenne est inférieure à 60); pour Europe et Océanie, la moyenne a toujours été supérieure; pour Amérique et Asie, la transtition par 60 s'est effectuée pendant la periode d'observation.
+réponse: pour l'Afrique, l'espérance de vie à la naissance n'a jamais été supérieure à 60 (les valeurs p sont toujours 1, ce qui indique qu'on ne peut pas rejeter l'hypothèse que la moyenne est inférieure à 60); pour Europe et Océanie, la moyenne a toujours été supérieure; pour Amérique et Asie, la transtition par 60 s'est effectuée pendant la periode d'observation.
