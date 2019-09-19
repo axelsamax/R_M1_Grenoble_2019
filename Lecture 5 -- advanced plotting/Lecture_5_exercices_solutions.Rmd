@@ -180,7 +180,8 @@ mpg %>%
 mpg %>% 
   ggplot(aes(class))+
   aes(fill = drv) +
-  geom_bar(position = position_fill())
+  geom_bar(position = position_fill()) -> bar_color
+bar_color
 ```
 
 > tournez le graphique de 90 degrés -- coord_flip
