@@ -34,7 +34,7 @@ Par exemple prenons les données des **TidyTuesdays** que vous trouvez ici: http
 Example: retards de la SNCF
 
 ```{r}
-
+df <- read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-02-26/full_trains.csv")
 ```
 
 
@@ -53,40 +53,61 @@ On commence par charger les *packages* et les données. Elles sont au format .ts
 library(tidyverse)
 library(knitr)
 
+df <- read_tsv("DatasaurusDozen.tsv")
 ```
 
 
 Quelle forme a ce jeu de données? 
 ```{r, message=FALSE}
-
+summary(df)
 ```
 Trois variables, *dataset*, *x* et *y*. Dataset est categorielle, combien de datasets?^[distinct() est un filter() qui élimine tous les observations doublons; kable() est une fonction qui prend un tableau et l'affiche joliment. Je vais systématiquement l'appeler à la fin de chaque chaine pour bien visualiser les résultats]
 
 ```{r, message=FALSE}
+#combien?
+df %>% select(dataset) %>% distinct() %>% summarise(n())
 
+# lesquelles?
+df %>% select(dataset) %>% distinct() %>% kable()
 ```
 
 Ceci dit, quelle forme ont ces 13 différents jeux de données? On peut calculer quelques statistiques de base ^[là on veut uniquement la moyeen et la variance -- le code est simple. On introduit la fonction *summarise_at()* qui est comme *summarise()* qu'on connait mais qui applique une liste de fonctions (funs) à une liste de variables (x,y) et qui permet de façon plus compacte de faire ce qu'on ferait avec plusieurs appels à summarise() en séquence]
 
 ```{r, message=FALSE}
-
+df %>% 
+  group_by(dataset) %>% 
+  summarise_at(vars(x,y), funs(mean, sd)) %>% 
+  kable()
 ```
 
 Il nous manque tout de même la corrélation entre x et y: ^[là on crée d'abord un nouveau jeux de données où on utilise *cor()* pour calculer la corrélation entre *x* et *y* et après on utilise left_join pour l'ajouter à notre jeu de données]
 ```{r, message=FALSE}
+dfcor <- df %>% 
+  group_by(dataset) %>% 
+  summarise(corr = round(cor(x,y),3))
 
+df %>% 
+  group_by(dataset) %>% 
+  summarise_at(vars(x,y), funs(mean, sd)) %>% 
+  left_join(dfcor) %>% 
+  kable()
 ```
 
-Là on voit que chaque sous-jeu de données à la même moyenne, la même variance, et presque la même corrélation. S'agit-il donc de données qui sont tout à fait les mêmes? Si on fait des tests, on retrouve bien évidemment la même chose -- un t.test de différence des moyennes donnerait des résultats forts dans le sens d'une absence de différence. ^[je vous laisse cela comme exercice: mais vraiment, en a-t-on besoin? Si moyenne est quasiment la même et la variance est la même, n'importe quel test retournerait un p-value proche de 1. J'en fais un comme exemple. 
+Là on voit que chaque sous-jeu de données à la même moyenne, la même variance, et presque la même corrélation. S'agit-il donc de données qui sont tout à fait les mêmes? Si on fait des tests, on retrouve bien évidemment la même chose -- un t.test de différence des moyennes donnerait des résultats forts dans le sens d'une absence de différence. ^[je vous laisse cela comme exercice: mais vraiment, en a-t-on besoin? Si moyenne est quasiment la même et la variance est la même, n'importe quel test retournerait un p-value proche de 1. J'en fais un comme exemple. J'utilise *unlist()* parce que kable() travaille avec des data.frame et t.test a comme output une liste -- détails, pas trop important]
 
 ```{r, message=FALSE}
-
+t.test(df$x[df$dataset=="away"],df$x[df$dataset=="bullseye"]) %>% 
+  unlist() %>% 
+  kable()
 ```
 
 Pour résumer: 13 jeux de données, même stats, les tests nous les donnent tous égaux... mais le sont-ils vraiment? essayons de les visualiser! ^[facet_wrap() est une sequence monodimensionelle de facets, qui vont a la ligne automatiqeument si plus d'espace]
 
 ```{r, message=FALSE, fig.width = 12, fig.height = 10, fig.fullwidth = TRUE}
-
+df %>% 
+  ggplot(aes(x,y)) +
+  geom_point() +
+  facet_wrap(~dataset)
 ```
 
 Message à retenir? Simple: 
@@ -172,18 +193,38 @@ head(df)
 Il n'est aps parfait, bien sûr, mais pas loin de ce qu'on veut non plus. Pour réviser, on peut utiliser un peu des outils qu'on a appris pour le mettre dans un état amenable à de l'exploration statistique.^[celui-ci n'est qu'un example de ce qu'on peut faire, bien sûr.ici je sélectionne la population, change les noms, fais un nettoyage des données pour transformer un caractère en chiffres, élimine les lignes de 'sommaire' qui ne servent à rien, puis je regarde la correlation de la population en 2010 avec celle en 2016 et je vois qui croit plus que les autres.]
 
 ```{r, message=FALSE}
-
+df %>% 
+  select(state = Name, pop2016 = `Population estimate, July 1, 2019[4]`, pop2010 = `Census population, April 1, 2010[5]`, perc2016 = `Percent of the total U.S. population, 2018[note 3]`) %>% 
+  mutate(pop2016 = str_replace_all(pop2016, ",", ""),
+         pop2010 = str_replace_all(pop2010, ",", ""),
+         perc2016 = str_replace_all(perc2016, "%", ""))  %>% 
+  mutate_at(.vars = vars(pop2016, pop2010, perc2016), .funs = funs(as.numeric)) %>% 
+  filter(pop2016 < 50000000) -> df_clean
 ```
 et voilà le plot: qui voit une croissance plus elevée?^[`ggrepel` est un package qui nous aide à bien placer les labels et les textes sur un plot]
 ```{r, message=FALSE}
-
+library(ggrepel)
+df_clean %>% ggplot(aes(pop2010, pop2016, label=state))+geom_point()+geom_label_repel()+geom_abline(slope = 1, lty='dotted')
 ```
 
 on n'y comprend rien. Il faudrat éliminer tous les états qui n'ont pas beaucoup changé. Voilà: ^[ce code démontre aussi l'usage de `scale` pour changer la façon dont les éléments d'un ggplot apparaissent]
 
 ```{r, message=FALSE}
 `%not in%` <- function (x, table) is.na(match(x, table, nomatch=NA_integer_))
-
+df_clean %>% 
+  #removing atolls and other stupid territories
+  filter(state %not in% c("Guam", "U.S. Virgin Islands", "American Samoa", "Northern Mariana Islands",
+                          "Wake Island", "Johnston Atoll", "Midway Atoll", "Palmyra Atoll")) %>% 
+  mutate(growth = 100*(pop2016 - pop2010)/pop2010,
+         avggrowth = mean(growth, na.rm = T)) %>% 
+  mutate(dist_from_avg = growth - avggrowth) %>% 
+  filter(abs(dist_from_avg)>5 ) %>% 
+  mutate(sign = dist_from_avg > 0) %>% 
+  ggplot(aes(pop2010, pop2016, label=state, color = sign))+
+  geom_point()+
+  geom_label_repel()+
+  geom_abline(slope = 1, lty='dotted')+
+  theme_minimal()+scale_color_manual(name = "population up?", values = c("red","chartreuse4"))
 ```
 
 **Deuxième cas: extraire de l'info d'un texte**
@@ -213,23 +254,27 @@ Cet exemple vous montre que parfois sortir l'information n'est pas facile parce 
 Il est plus facile d'extraire des données des sites 'professionnels'. Par exemple, extraire la liste des blog posts du site de Rstudio. On va chercher le blog de Rstudio ici: https://blog.rstudio.com/
 
 ```{r, message= FALSE}
-
+rs <- read_html("https://blog.rstudio.com/")
 ```
 
 Après avec l'aide du CSS selector on peut sélectionner par exemple les auteurs. Si on le fait on voit que les dates sont sélectionnées aussi. mais si on clique sur une date on peut déselctionner les dates. Le CSS selector nécessaire pour les auteurs est donc:
 
 ```{r, message= FALSE}
-
+rs %>% html_nodes("span+ span") %>% html_text()
 ```
 A noter: `html_test()` produit un vecteur. On va le sauvegarder dans la variable 'auteurs'. On va faire de même avec les dates et les titres.
 
 ```{r, message= FALSE}
-
+rs %>% html_nodes("span+ span") %>% html_text() -> auteurs
+rs %>% html_nodes(".article-list span:nth-child(1)") %>% html_text() -> dates
+rs %>% html_nodes("h1 a") %>% html_text() -> titres
+rs %>% html_nodes(".summary") %>% html_text()-> abstract
 ```
 
 Les trois vecteurs ont tous 10 observations, on peut les constraindre dans un data.frame (ou tibble):
 ```{r}
-
+rvestdf <- data.frame(auteurs, dates, titres, abstract)
+rvestdf
 ```
 
 Avec des opérations de ce type on peut construire une base de données assez importante, **sur une seule page à la fois, cependant**. 
@@ -278,14 +323,19 @@ Là on a tout ce qu'il faut; mais malheureusement les données sont dans un form
 
 On va partir par considérer que chaque élément de la liste peut être aisement transformé en data.frame. Voilà deux examples:
 ```{r}
-
+d1 <- data.frame(do.call("cbind", DATA[[1]])) %>% 
+  as_tibble()
+d1
 ```
 
 
 On peut donc boucler sur cette liste et sauvegarder les objets qui en sortent
 
 ```{r}
-
+DATA %>% 
+  tibble() %>% 
+  mutate(ext = map(DATA, ~data.frame(do.call("cbind", .)))) %>% 
+  unnest(ext) -> rstudio_data
 
 
 ```
@@ -295,7 +345,13 @@ et voilà, on a extrait tous les blog posts du blog de Rstudio.
 On peut meinatenant faire un contage pour voir qui a publié plus de posts, et faire un plot:
 
 ```{r}
-
+rstudio_data %>% 
+  group_by(author) %>% 
+  tally() %>%     #equivalent to summarise(n = n())
+  ggplot(aes(x = reorder(author,n), y = n))+
+  geom_col()+
+  theme_minimal()+
+  coord_flip()
   
 ```
 
@@ -327,7 +383,10 @@ Rcrawler(Website = "https://www.imdb.com/list/ls027433291/" ,
 Cette fois-ci la structure de la base de données est plus simple. On peut donc simplement faire
 
 ```{r}
-
+DATA %>% 
+  tibble() %>% 
+  mutate(ext = map(DATA, ~data.frame(do.call("cbind", .)))) %>% 
+  unnest(ext) -> movies
 
 ```
 
@@ -335,6 +394,13 @@ Cette fois-ci la structure de la base de données est plus simple. On peut donc 
 là on peut plotter les étoiles IMDb contre le score Metacritic:
 
 ```{r}
-
+movies %>% 
+  select(Title, Score, Metacrtic) %>% 
+  distinct() %>% 
+  mutate(Score = as.numeric(Score),
+         Metacrtic = as.numeric(Metacrtic)) %>% 
+  ggplot(aes(Score, Metacrtic, label = Title))+
+  geom_point()+
+  geom_smooth(method = "lm")
 ```
 
