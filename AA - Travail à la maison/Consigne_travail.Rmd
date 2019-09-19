@@ -37,7 +37,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Notes
 
-**IMPORTANT**: cau contraire de ce que j'ai dit à ceux qui étaient encore là à la fin du cours, **il y aura bien une note de ce cours**. Je m'excuse pour le malentendu et pour avoir diffusé des fausses informations. 
+**IMPORTANT**: au contraire de ce que j'ai dit à ceux qui étaient encore là à la fin du cours, **il y aura bien une note de ce cours**. Je m'excuse pour le malentendu et pour avoir diffusé des fausses informations. 
 
 Les règles sont les suivantes
 
