@@ -35,6 +35,17 @@ knitr::opts_chunk$set(echo = TRUE)
 2. l'idée est d'apprendre: vous pouvez copier, échanger avec vos camareds, copier-coller du web...
 3. ...mais je pourrai vous poser des questions donc ne faites pas plus de ce que vous êtes à l'aise à défendre à l'oral en classe!
 
+## Notes
+
+**IMPORTANT**: cau contraire de ce que j'ai dit à ceux qui étaient encore là à la fin du cours, **il y aura bien une note de ce cours**. Je m'excuse pour le malentendu et pour avoir diffusé des fausses informations. 
+
+Les règles sont les suivantes
+
+- la note sera basé sur le travail fait et sur la présentation que vous en ferez lors de la dernière séance;
+- la note sera qualitative;
+- vous aurez une note jointe pour le cours 'logiciels spécialisés', qui comprend aussi le cours de python (à venir);
+- la note qualitative du cours de R sera tenue en compte avec ce que vous ferez avec python pour une note globale de 'logiciels spécialisés'. 
+
 ## Ressources
 
 1. pour regarder ce que autres ont fait: https://nsgrantham.shinyapps.io/tidytuesdayrocks/
