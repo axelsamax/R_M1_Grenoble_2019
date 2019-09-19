@@ -34,7 +34,7 @@ Par exemple prenons les données des **TidyTuesdays** que vous trouvez ici: http
 Example: retards de la SNCF
 
 ```{r}
-df <- read_csv()
+
 ```
 
 
@@ -135,7 +135,6 @@ Dans la suite on va présenter le fonctionnement de deux packages: `rvest` ^[ce 
 On commence par installer le package. Il est partie du tidyverse, mais on ne sait jamais:
 
 ```{r, message = FALSE}
-install.packages("rvest")
 library(rvest)
 ```
 
@@ -253,13 +252,15 @@ Cet exemple vous montre que parfois sortir l'information n'est pas facile parce 
 Il est plus facile d'extraire des données des sites 'professionnels'. Par exemple, extraire la liste des blog posts du site de Rstudio. On va chercher le blog de Rstudio ici: https://blog.rstudio.com/
 
 ```{r, message= FALSE}
-
+rstudio <- read_html("https://blog.rstudio.com/")
 ```
 
 Après avec l'aide du CSS selector on peut sélectionner par exemple les auteurs. Si on le fait on voit que les dates sont sélectionnées aussi. mais si on clique sur une date on peut déselctionner les dates. Le CSS selector nécessaire pour les auteurs est donc:
 
 ```{r, message= FALSE}
-
+titres <- rstudio %>%  html_nodes("h1 a") %>%  html_text()
+auteurs <- rstudio %>%  html_nodes("span+ span") %>%  html_text()
+date <- rstudio %>%  html_nodes(".article-list span:nth-child(1)") %>% html_text()
 ```
 A noter: `html_test()` produit un vecteur. On va le sauvegarder dans la variable 'auteurs'. On va faire de même avec les dates et les titres.
 
@@ -269,7 +270,7 @@ A noter: `html_test()` produit un vecteur. On va le sauvegarder dans la variable
 
 Les trois vecteurs ont tous 10 observations, on peut les constraindre dans un data.frame (ou tibble):
 ```{r}
-
+rst <- data.frame(auteurs, titres, date)
 ```
 
 Avec des opérations de ce type on peut construire une base de données assez importante, **sur une seule page à la fois, cependant**. 
@@ -306,10 +307,10 @@ Rcrawler à une option `ExtractCSSPat = c(LISTE DE PATTERNS)` qui permet d'extra
 ```{r, message = FALSE}
 Rcrawler(Website = "https://blog.rstudio.com/", 
          crawlUrlfilter = "/page/[0-9]{1-2}", 
-         ExtractCSSPat = c("span+ span","h1 a",".summary"), 
+         ExtractCSSPat = c("span+ span","h1 a",".article-list span:nth-child(1)"), 
          MaxDepth = 100, 
          ManyPerPattern = T, 
-         PatternsNames = c("author","title","content"))
+         PatternsNames = c("author","title","date"))
 ```
 
 Cette fois ci Rcrawler a crée deux variables dans votre environnement: INDEX et DATA. 
@@ -318,14 +319,20 @@ Là on a tout ce qu'il faut; mais malheureusement les données sont dans un form
 
 On va partir par considérer que chaque élément de la liste peut être aisement transformé en data.frame. Voilà deux examples:
 ```{r}
-
+DATA %>% 
+  tibble(DATA) %>% 
+  mutate(ext = map(DATA, ~data.frame(do.call("cbind", .)))) %>% 
+  unnest(ext)  -> rstudio_data
 ```
 
 
 On peut donc boucler sur cette liste et sauvegarder les objets qui en sortent
 
 ```{r}
-
+rstudio_data %>% 
+  ggplot(aes(x = author))+
+  geom_bar()+
+  coord_flip()
 
 
 ```
@@ -362,7 +369,13 @@ Rcrawler(Website = "https://www.imdb.com/list/ls027433291/" ,
                           "cast overview"), 
          ManyPerPattern = TRUE,
          ignoreAllUrlParams = TRUE)
+
+DATA %>% 
+  tibble(DATA) %>% 
+  mutate(ext = map(DATA, ~data.frame(do.call("cbind", .)))) %>% 
+  unnest(ext) -> movies
 ```
+
 
 Cette fois-ci la structure de la base de données est plus simple. On peut donc simplement faire
 
@@ -375,6 +388,8 @@ Cette fois-ci la structure de la base de données est plus simple. On peut donc 
 là on peut plotter les étoiles IMDb contre le score Metacritic:
 
 ```{r}
-
+movies %>% 
+  ggplot(aes(x = Stars, y = Metascore))+
+  geom_point()
 ```
 
