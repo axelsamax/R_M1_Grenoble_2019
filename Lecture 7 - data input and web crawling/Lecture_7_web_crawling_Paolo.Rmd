@@ -13,12 +13,12 @@ output:
     latex_engine: xelatex
 ---
 
-```{r setup, include=FALSE, tinytex.verbose = TRUE}
+```{r setup, include=FALSE, tinytex.verbose = TRUE, echo = T, message=F, warning=F}
 library(tufte)
 library(tinytex)
 options(tinytex.verbose = TRUE)
 # invalidate cache when the tufte version changes
-knitr::opts_chunk$set(tidy = FALSE, cache.extra = packageVersion('tufte'))
+knitr::opts_chunk$set(tidy = FALSE, cache.extra = packageVersion('tufte'), echo = T, message = F, warning = F)
 options(htmltools.dir.version = FALSE)
 library(tidyverse)
 ```
