@@ -34,7 +34,7 @@ Par exemple prenons les données des **TidyTuesdays** que vous trouvez ici: http
 Example: retards de la SNCF
 
 ```{r}
-
+df <- read_csv()
 ```
 
 
@@ -52,24 +52,35 @@ On commence par charger les *packages* et les données. Elles sont au format .ts
 
 library(tidyverse)
 library(knitr)
-
+df <- read_tsv("DatasaurusDozen.tsv") 
 ```
 
 
 Quelle forme a ce jeu de données? 
 ```{r, message=FALSE}
-
+summary(df)
 ```
 Trois variables, *dataset*, *x* et *y*. Dataset est categorielle, combien de datasets?^[distinct() est un filter() qui élimine tous les observations doublons; kable() est une fonction qui prend un tableau et l'affiche joliment. Je vais systématiquement l'appeler à la fin de chaque chaine pour bien visualiser les résultats]
 
 ```{r, message=FALSE}
+df %>%
+  select(dataset) %>% 
+  distinct()
+
+df %>% 
+  group_by(dataset) %>% 
+  tally() ## tally() est strictement équivalent à summarise(n == n())
 
 ```
 
 Ceci dit, quelle forme ont ces 13 différents jeux de données? On peut calculer quelques statistiques de base ^[là on veut uniquement la moyeen et la variance -- le code est simple. On introduit la fonction *summarise_at()* qui est comme *summarise()* qu'on connait mais qui applique une liste de fonctions (funs) à une liste de variables (x,y) et qui permet de façon plus compacte de faire ce qu'on ferait avec plusieurs appels à summarise() en séquence]
 
 ```{r, message=FALSE}
-
+df %>% 
+  group_by(dataset) %>% 
+  summarise(mean_x = mean(x), sd_x = sd(x),
+            mean_y = mean(y), sd_y = sd(y),
+            cor(x,y))
 ```
 
 Il nous manque tout de même la corrélation entre x et y: ^[là on crée d'abord un nouveau jeux de données où on utilise *cor()* pour calculer la corrélation entre *x* et *y* et après on utilise left_join pour l'ajouter à notre jeu de données]
@@ -80,7 +91,10 @@ Il nous manque tout de même la corrélation entre x et y: ^[là on crée d'abor
 Là on voit que chaque sous-jeu de données à la même moyenne, la même variance, et presque la même corrélation. S'agit-il donc de données qui sont tout à fait les mêmes? Si on fait des tests, on retrouve bien évidemment la même chose -- un t.test de différence des moyennes donnerait des résultats forts dans le sens d'une absence de différence. ^[je vous laisse cela comme exercice: mais vraiment, en a-t-on besoin? Si moyenne est quasiment la même et la variance est la même, n'importe quel test retournerait un p-value proche de 1. J'en fais un comme exemple. 
 
 ```{r, message=FALSE}
-
+df %>% 
+  ggplot(aes(x = x, y = y))+
+  geom_point()+
+  facet_wrap(~dataset)
 ```
 
 Pour résumer: 13 jeux de données, même stats, les tests nous les donnent tous égaux... mais le sont-ils vraiment? essayons de les visualiser! ^[facet_wrap() est une sequence monodimensionelle de facets, qui vont a la ligne automatiqeument si plus d'espace]
@@ -121,7 +135,7 @@ Dans la suite on va présenter le fonctionnement de deux packages: `rvest` ^[ce 
 On commence par installer le package. Il est partie du tidyverse, mais on ne sait jamais:
 
 ```{r, message = FALSE}
-#install.packages("rvest")
+install.packages("rvest")
 library(rvest)
 ```
 
@@ -161,7 +175,10 @@ states <- usa %>% html_nodes("table") %>% .[[1]]
 
 On a maintenant isolé le tableau dont on avait besoin. Comment l'importer en R pour l'utiliser pour nos stats? Simplement (comme tout dans le tidyverse) en utilisant la fonction `html_table()`:
 ```{r, message=FALSE}
-df <- states %>% html_table()
+read_html("https://simple.wikipedia.org/wiki/List_of_U.S._states_by_population") %>% 
+  html_nodes("table") %>% 
+  .[[1]] %>% 
+  html_table() -> df
 ```
 
 on va inspecter un peu notre df
@@ -169,10 +186,33 @@ on va inspecter un peu notre df
 head(df) 
 ```
 
-Il n'est aps parfait, bien sûr, mais pas loin de ce qu'on veut non plus. Pour réviser, on peut utiliser un peu des outils qu'on a appris pour le mettre dans un état amenable à de l'exploration statistique.^[celui-ci n'est qu'un example de ce qu'on peut faire, bien sûr.ici je sélectionne la population, change les noms, fais un nettoyage des données pour transformer un caractère en chiffres, élimine les lignes de 'sommaire' qui ne servent à rien, puis je regarde la correlation de la population en 2010 avec celle en 2016 et je vois qui croit plus que les autres.]
+Il n'est aps parfait, bien sûr, mais pas loin de ce qu'on veut non plus. Pour réviser, on peut utiliser un peu des outils qu'on a appris pour le mettre dans un état amenable à de l'exploration statistique.
+
+> exercice
+
+1.sélectionner la population en 2019 par état et en 2010
+2. transformer un caractère en chiffres
+3. élimine les lignes de 'sommaire' qui ne servent à rien
+4. quelle corrélation entre population en 2010 avec celle de 2019
 
 ```{r, message=FALSE}
-
+df %>% 
+  select(Name,`Population estimate, July 1, 2019[4]`,`Census population, April 1, 2010[5]`) %>% 
+  rename(state = Name,
+         pop2019 = `Population estimate, July 1, 2019[4]`,
+         pop2010 = `Census population, April 1, 2010[5]`) %>% 
+  mutate(pop2019 = str_replace_all(pop2019, ",", ""),
+         pop2010 = str_replace_all(pop2010, ",", "")) %>% 
+  mutate(pop2019 = as.numeric(pop2019),
+         pop2010 = as.numeric(pop2010)) %>% 
+  filter(state != "The fifty states",
+         state != "Contiguous United States",
+         state != "Fifty states + District of Columbia",
+         state != "Total U.S (including District of Columbia and territories)") %>% 
+  ggplot(aes(x = pop2010, y = pop2019))+
+  geom_point()+
+  geom_abline(slope = 1, color = "red")
+  
 ```
 et voilà le plot: qui voit une croissance plus elevée?^[`ggrepel` est un package qui nous aide à bien placer les labels et les textes sur un plot]
 ```{r, message=FALSE}
@@ -197,7 +237,7 @@ pc <- read_html("https://paolocrosetto.wordpress.com/papers/")
 
 à l'aide du CSS selector on s'aperçoit que tout titre d'un papier est dans un tag `strong`. On va donc extraire les titres de tous les publications avec:
 ```{r, message = FALSE}
-publis <- pc %>% html_nodes("strong") %>% html_text()
+publis <- pc %>% html_nodes("li strong") %>% html_text()
 ```
 
 On utilise la fonction `html_nodes()` pour extraire les titres et la fonction `html_text()` pour extraire le texte de ces titres
