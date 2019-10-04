@@ -1,0 +1,150 @@
+ 
+---
+title: "Tennis Grand Slam"
+author: "ALMHDIE Hatim"
+date: "01/10/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r, message=FALSE}
+
+player_dob <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-04-09/player_dob.csv")
+
+grand_slams <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-04-09/grand_slams.csv")
+
+grand_slam_timeline <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-04-09/grand_slam_timeline.csv")
+
+library(tidyverse)
+
+```
+
+# INTRODUCTION
+
+Au tennis, un Grand Chelem, c'est l'un des quatre tournois majeurs du circuit international organisé par la Fédération internationale de tennis, à savoir : 
+ -l'Open d'Australie à Melbourne (type de surface : dur), 
+ -Roland-Garros à Paris (type de surface : terre battue),
+ -le tournoi de Wimbledon à Londres (type de surface : gazon),
+ -l'US Open à New York (type de surface : dur).
+Ces quatre tournois majeurs, appelés en conséquence « tournois du Grand Chelem », sont les plus prestigieux et les plus difficiles à gagner sur le circuit professionnel. Ils se déroulent en effet pour chacun sur deux semaines consécutives.
+
+
+# OBSERVATION 1
+
+Quel est l'age d'un joueur de tennis lors de son premier titre de grand slam par tranche d'age ?
+
+```{r pressure}
+player_dob %>%
+  filter(!is.na(age)) %>%
+  mutate(age_yrs = age / 365, tranche_age = paste0(4 * (age_yrs %/% 4), " to ", 4 * (age_yrs %/% 4) + 4)) %>%
+  ggplot(aes(date_of_birth,age_yrs)) +
+  geom_point(shape = 21, col = "gray20", size = 3) +
+  labs(x = "Date of Birth", y = "Date of First Title",
+       title = "Tennis Player Age at First Title Relative to Date of Birth")+
+  geom_smooth(method = 'lm')
+
+# player_dob %>%
+#   filter(!is.na(age)) %>%
+#   mutate(age = age /365) %>% 
+#   ggplot(aes(age)) +
+#   geom_histogram()
+# 
+# 
+#   geom_point(shape = 21, col = "gray20", size = 3) +
+#   labs(x = "Date of Birth", y = "Date of First Title",
+#        title = "Tennis Player Age at First Title Relative to Date of Birth")
+
+
+```
+
+
+
+
+
+on s'apercoit que les joueurs de tennis gagnent leur grand slam entre 20 et 24 ans majoritairement suivis de ceux ayant entre 24 et 28 ans. On peut en déduire que rare sont les joueurs qui gagnent leur premier titre entre 32 et 36 ans.
+
+# OBSERVATION 2
+
+quel est l'age moyen des joueurs de tennis lors de leur premier titre de grand chelem par sexe ?
+
+```{r}
+# Calculate age
+
+age <- player_dob %>%
+
+  select(name, date_of_birth) %>% 
+
+  inner_join(grand_slams, by = "name") %>%
+
+  mutate(age = as.numeric(difftime(tournament_date, date_of_birth, unit = "days"))/365)
+
+# Boxplot of player ages by tournament
+
+age %>% 
+
+  mutate(grand_slam = str_to_title(str_replace(grand_slam, "_", " "))) %>% 
+
+  ggplot(aes(x =grand_slam, y = age, fill = gender)) +
+
+  geom_boxplot() +
+
+  scale_fill_manual(values = c('#8700F9', '#00C4AA')) +
+
+  labs(x = "Grand Chelem", 
+
+       y = "Age",
+
+       title = "Repartition D'Age Par Grand Chelem")
+```
+
+
+On apercoit que les joueuses sont les plus jeunes à avoir gagner leur premier titre de grand chelem par rapport aux hommes dans la plupart des grand chelem sauf à wimbledon ou l'age moyen des joueuses est superieur aux hommmes.
+
+
+# OBSERVATION 3
+
+Quels sont les joueurs de tennis ayant remporté le plus de grand chelem de 1968 à nos jours ?
+
+
+
+
+```{r}
+
+# Plot Top Winners
+
+grand_slams %>% 
+  group_by(gender) %>% 
+count(name, sort = TRUE) %>%
+
+add_count(name, wt = n) %>%
+
+filter(n >=5) %>% 
+mutate(name = fct_reorder(name, n, sum)) %>% 
+
+ggplot(aes(reorder(name,-n), n, fill = gender )) +
+
+geom_col() +
+  
+  scale_fill_manual(values = c('#F6BD60', '#7FB069', '#548687')) +
+  coord_flip() +
+
+labs(x = "", 
+
+     y = "No. of Grand Slam Wins",
+
+     title = "Top Grand Slam Winners ",
+
+     subtitle = "1968 - 2019")
+```
+
+
+Federer est le troisieme athlète à passer la barre mythique des 20 tournois du Grand Chelem depuis 1968. Les deux autres sont des joueuses : Serena Williams (23) et Steffi Graf (22).Le top 2 chez les hommes est rafael nadal avec 17 titres de grand chelem.

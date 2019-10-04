@@ -1,0 +1,164 @@
+ 
+---
+title: "VraiDevoir"
+author: "Maxime Ory"
+date: "01/10/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+### Diversité dans les écoles américaines
+
+Les données viennent de The Washington Post grâce à Kate Rabinowitz, Laura Meckler, et Armand Emamdjomeh.
+
+Cette analyse utilise le Common Core of Data du National Center for Education Statistics (NCES). Les écoles privées, et écoles à distances, ont été exclue car le gouvernement n'a qu'un contrôle très limité sur elles.
+Les données utilisée sont celles de 1994-1995, les plus anciennes disponnibles qui soient suffisemment claire, ainsi que celle de 2016-2017 qui sont les plus récente disponnible lors de la mise en ligne de cette base.
+
+La variable principale est la diversité, elle est classée en 3 catégories : 
+
+        Diverse : Le groupe racial dominant représente moins de 75% des élèves.
+        
+        Undiverse : Entre 75% et 90% des élèves font parti du groupe dominant.
+        
+        Extremely Undiverse : 90% ou plus des élèves appartiennent au groupe dominant.
+
+La catégorie multiracial n'existait pas en 1995 et est donc difficile à mettre en place.
+
+Varialble : Description
+
+LEAID : Unique school id
+
+LEA_NAME : School District Name
+
+ST : State of school district
+
+d_Locale_Txt : Type of school district, town, rural, city, suburban combined with distant, remote, fringe, small, midsize, large
+
+SCHOOL_YEAR : School year (either 1994-1995 or 2016-2017)
+
+AIAN : American indian and alaskan native proportion of student population
+
+Asian : Asian proportion of student population
+
+Black : Black proportion of student population
+
+Hispanic : Hispanic proportion of student population
+
+White : White proportion of student population
+
+Multi : Multi-ethnic proportion of student population
+
+Total : Total student body count
+
+diverse : Diverse rating (Diverse, undiverse, extremely undiverse)
+
+variance :  the variance ratio
+
+int_group : the level of integration, defined as "Highly integated", "Somewhat integrated" and "Not integrated"
+
+
+
+
+
+
+###En première étape il nous faut activer tidyverse, et importer les données :
+
+```{r}
+library(tidyverse)
+
+df <- read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-09-24/school_diversity.csv") #On place les données dans df.
+```
+
+##Comment avoir un bref aperçu de notre base de données ?
+
+```{r}
+summary(df) #On observe notre base de données
+```
+
+
+
+##Comment observer les différentes concentration d'éthnie dans un le système scolaire d'un état ?
+##Comment comparer l'évolution de cette concentration au cours du temps ?
+
+***Création d'un plot pour l'état de New York. On peut aisément modifier le filter afin d'obtenir ces résultats pour un autre état.***
+
+
+```{r}
+df_subNY <- df %>% 
+  filter(ST == "NY") %>% #On ne prend que les écoles dépendant de New York.
+  select(SCHOOL_YEAR,ST,AIAN,Asian,Black,Hispanic,White) %>% #Seules certaines variables nous intéressent.
+  group_by(SCHOOL_YEAR, ST) %>% #On veut Obtenir deux lignes, il faut que nos résultats dépendent de l'année, et de la zone des écoles.
+  summarise_all(mean) %>% #On veut l'état d'une école moyenne, pas celui de chacune des écoles de NY.
+  ungroup() %>%   #On annule la fonction group_by utilisée précédemment.
+  gather(ethnicity, percent, -SCHOOL_YEAR, -ST) #Permet de présenter différement, on aura une ligne par Ethnie et par année, mettant ainsi en valeur l'évolution des pourcentages par années.
+```
+
+
+***Application du plot précédement créé à l'année 1994-1995.***
+
+
+```{r}
+plot_subNY_1994 <- df_subNY %>% 
+  #filter(SCHOOL_YEAR == "1994-1995" | SCHOOL_YEAR == "2016-2017") %>% #On séléctionne l'année qu'on veut observer
+  ggplot(aes(SCHOOL_YEAR, percent, fill = ethnicity))+ #Abcisse = Ehtnie, Ordonnée = Pourcentage de l'éthnie dans l'école moyenne de NY. Fill : Permet de mettre en valeur l'éthnie. (sinon tout noir.)
+  geom_col(position = position_fill()) +#geom_line n'est pas possible car on a qu'une seule observation.
+  coord_flip()
+
+plot_subNY_1994
+```
+
+
+***Application du plot précédement créé à l'année 2016-2017.***
+
+
+```{r}
+plot_subNY_2016 <- df_subNY %>% 
+  filter(SCHOOL_YEAR == "2016-2017") %>% 
+  ggplot(aes(ethnicity, percent, fill = ethnicity))+
+  geom_col()+
+  coord_flip()
+
+plot_subNY_2016
+```
+
+
+`
+###Mettre en valeur la diversité dans les écoles dans un secteur au choix (Ville, village, périphérie ou campagne) et à une année au choix.
+
+
+
+
+```{r}
+df_alldiv <- df %>%
+  filter(d_Locale_Txt == "town-distant"|d_Locale_Txt == "town-fringe"|d_Locale_Txt =="town-remote") %>% #Ici on ne veut prendre que les écoles de villages.
+  select(d_Locale_Txt, Total, SCHOOL_YEAR, diverse) %>% #On ne veut pas toutes les variables.
+  rename(id = d_Locale_Txt) %>% #On change le nom de la variable pour quelque chose de plus rapide.
+  mutate(
+    SCHOOL_YEAR = str_sub(SCHOOL_YEAR, 1, 4),  #str_sub nous permet ici de réduire la valeur "school_year" à 1994 au lieu de 1994-1995. On prend les éléments de 1 à 4 de la variable, à savoir : 1, 9, 9 et 4.
+    diverse = fct_recode(diverse, "1" = "Diverse", "0" = "Undiverse", "-1" = "Extremely undiverse")) #fct_recode() permet de modifier le nom des paramètres de la variables.
+  
+
+  
+df_alldiv
+  
+  
+
+
+```
+
+```{r}
+plot_df_alldiv <- df_alldiv %>% 
+  filter(SCHOOL_YEAR == "2016") %>% 
+  ggplot(aes(diverse))+
+  geom_bar(aes(fill = id))+
+  # geom_text(aes())
+  labs(title = "Diversité dans les villages en 2016")
+
+plot_df_alldiv
+```
+

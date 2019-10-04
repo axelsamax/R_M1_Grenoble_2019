@@ -1,0 +1,91 @@
+ 
+---
+title: "Roman Emperor"
+author: "Culas Loris"
+date: "01/10/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+```{r}
+emperors <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-08-13/emperors.csv")
+
+```
+
+
+
+L'empire Romain s'est étendu de 27 av. J.-C ) 476 apr. J.-C, soit une durée de 503 ans, période pendant laquelle se sont succeder bon nombre d'empereurs. Le titre d'empereur désigne les individus détenteurs du pouvoir dans l'Empire romain. Dans notre cas, on à les données de 61 empereurs avec chacun 16 variables. On va se pencher plus particulièrement sur les règnes et leur raison de fin.
+
+
+Dans un premier temps, ont calcul à l'aide des dates de naissance et de règne, l'âge à la fin du règne et la durée du règne de chaque empereur.
+```{r}
+emperors <- emperors %>%
+  drop_na(death, birth, reign_start, reign_end) %>%
+  filter(death >= birth) %>%
+  mutate(age = lubridate::time_length(death - birth, unit = "year")) %>% 
+  mutate(regne_duree = lubridate::time_length(reign_end - reign_start, unit = "year")) 
+```
+
+
+Visualiser l'ensemble des règnes des empereurs romains et montrer les différentes dynasties.
+
+
+```{r, fig.height=15, fig.width = 10}
+emperors %>% 
+  arrange(abs(regne_duree)) %>% 
+  mutate(name = fct_reorder(name, regne_duree)) %>% 
+  ggplot(aes(x = name, y = regne_duree, color = dynasty))+
+  geom_label(aes(label = name))+
+  coord_flip()+geom_hline(aes(yintercept = median(regne_duree)), linetype = 3)+
+  labs(x = "Empereur",
+       y = "Durée de règne en année",
+       title = "Durée de règne des empereurs romains",
+       subtitle = "Coloré par dynastie",
+       Color = "Dynastie")+
+  theme(legend.position = "bottom")
+```
+
+
+Observer quelles sont les causes de la fin d'un règne les plus fréquentes chez les empereurs romains
+
+
+```{r}
+emperors %>% 
+  ggplot(aes(x = cause))+geom_bar()
+```
+On Observe alors deux causes sont plus présentes que les autres
+Ajoutons une différenciation en fonction des dynasties. Chacune ayant évoluée à une époque différente, les causes de la fin de règne peuvent différer.
+
+```{r}
+emperors %>% 
+  ggplot(aes(x = cause, fill = dynasty))+geom_bar()+coord_flip()+
+  labs(x = "Cause de la fin du règne", 
+       y = "Nombre",
+       title = "Répartitions des causes de fin de règne des empereurs par dynasties")
+```
+
+On observer bien certaines tendances pour certaines dynasties. Exemple avec un fort nombre d'assassinat chez les Gordian ou beaucoup de mort naturel chez les Constantinian. On peut ainsi observer entre les deux graphiques certains lien. Comme les Gordian qui ont de nombreux règnes très court que l'on peut expliquer au vue du nombre d'assisanat dans leurs rangs. A la différence, les Constantinian  ont 3 des 5 plus grands règnes de l'histoire, qui forcément, sont plus à même à finir pas une cause naturelle.
+
+
+Montrons en fonction des types d'accèes au pouvoir, quelles sont les causes de la fin du règne.
+
+```{r}
+emperors %>% 
+  select(rise, cause) %>%
+  group_by(rise) %>% count(cause) %>%
+  ggplot(aes(x = rise, fill = cause)) +
+  geom_bar(position = "fill") +
+  theme_bw() + coord_flip() +
+  labs(
+    title="Cause de fin de règne",
+    x= "Cause de la fin du règne",
+    y= "Type de règne")
+
+```
+
+On peut ainsi observer que chaque acesion au pouvoir n'attire pas les mêmes cause de la fin du règne. Une nomination par l'armée est généralement osurce de tentative d'assassinat, la où le seul empereurs élu est mort de cause naturel par exemple.
+
+
