@@ -1,0 +1,127 @@
+ 
+---
+title: "Projet R"
+author: "Quentin Williame"
+date: "02/10/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Simpsons Guest Stars
+
+# Descripion des données :
+
+```{r}
+# season : saison de la série
+# number : numéro d'épisode
+# production_code : code de production pour l'épisode
+# episode_title : titre de l'épisode
+# guest_star : invté vedette (nom actuel)
+# role : rôle dans la série (soit un personnage ou soi-même)
+```
+
+```{r}
+library(tidyverse)
+theme_set(theme_light())
+
+simpsons <- readr::read_delim("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-08-27/simpsons-guests.csv", delim = "|", quote = "") %>% 
+  mutate(self = str_detect(role, "self|selves"),
+         season = parse_number(season))
+```
+
+# Quel invité vedette s'est joué lui-même dans plusieurs épisodes des Simpson ?
+```{r}
+simpsons %>% 
+  filter(self) %>% 
+  count(guest_star, sort = TRUE) %>% 
+  filter(n > 1) %>% 
+  mutate(guest_star = fct_reorder(guest_star, n)) %>% 
+  ggplot(aes(guest_star, n)) +
+  geom_col() +
+  coord_flip()
+```
+
+```{r}
+simpsons %>% 
+  select(guest_star) %>% 
+  distinct()
+```
+
+
+```{r}
+# Nous pouvons constater que c'est Stephen Hawking qui détient le record avec 4 épisodes dans son propre rôle.
+# Suivi de près par Stan Lee, Ken Burns et Gary Coleman avec 3 épisodes dans leur propre rôle.
+# Ainsi qu'une majorité de Guest Stars s'étant joués eux-mêmes à 2 reprises dans la série.
+```
+
+# Quels rôles les Guest Stars ont joué en fonction des saisons ?
+```{r}
+simpsons %>% 
+  separate_rows(role, sep = ";\\s+") %>% 
+  add_count(role) %>% 
+  filter(n >= 8) %>% 
+  count(season, role) %>%
+  mutate(role = fct_reorder(role, -n, sum)) %>% 
+  ggplot(aes(season, n)) +
+  geom_col() +
+  facet_wrap(~ role)
+```
+
+```{r}
+# La première chose qui saute aux yeux c'est que les Guest Stars ont en majorité joué leur propre rôle un grand nombre de fois durant l'entièreté de la série.
+# Suivi de près par Edna Krabappel qui a été joué durant de nombreuses saisons par Marcia Wallace.
+# On constate également une écransante majorité de Guest Stars hommes dans leur propre rôle par rapport aux femmes et aux groupes dans leur propre rôle.
+# Le reste des rôles attribués à un invité vedette sont pour le coup très occasionnels durant la série.
+```
+
+# Combien de lignes de dialogue ont les Guest Stars par épisode ?
+```{r}
+library(readr)
+simpsons_dataset <- read_csv("~/dialogue-lines-of-the-simpsons/simpsons_dataset.csv")
+View(simpsons_dataset)
+
+dialogue <- simpsons_dataset %>%
+  select(role = raw_character_text, line = spoken_words)
+
+guests <- simpsons %>%
+  separate_rows(role, sep = ";\\s+") %>%
+  mutate(role = ifelse(self, guest_star, role),
+         role = ifelse(role == "Edna Krabappel", "Edna Krabappel-Flanders", role))
+
+guests_resume <- guests %>%
+  filter(season <= 27) %>%
+  group_by(guest_star, role, self) %>%
+  summarize(nb_episodes = n(),
+            first_season = min(season),
+            last_season = max(season)) %>%
+  arrange(desc(nb_episodes)) %>%
+  group_by(role) %>%
+  filter(n() == 1) %>%
+  ungroup() %>%
+  filter(!is.na(role))
+
+dialogue_resume <- dialogue %>%
+  group_by(role) %>%
+  summarize(nb_lines = n(),
+            random_line = sample(line, 1)) %>%
+  arrange(desc(nb_lines))
+
+guest_roles <- guests_resume %>%
+  inner_join(dialogue_resume, by = "role") %>%
+  mutate(lines_per_episode = nb_lines / nb_episodes)
+
+guest_roles %>%
+  mutate(self = ifelse(self, "Incarnant eux-mêmes", "Incarnant un personnage")) %>%
+  ggplot(aes(lines_per_episode)) +
+  geom_histogram(binwidth = 2, center = 1) +
+  facet_wrap(~ self, ncol = 1) +
+  labs(x = "Nombre moyen de lignes par épisodes")
+```
+
+```{r}
+# Nous pouvons déjà souligner que les Guest Stars ont dans les deux cas peu de lignes de dialogue par épisode (moins de 25 en moyenne).
+# Mais le plus frappant reste ceux qui s'incarnent eux-mêmes dépassant à peine les 15 (environ) en moyenne.
+```

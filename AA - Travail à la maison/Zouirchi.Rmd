@@ -1,0 +1,144 @@
+---
+title: "Video Games"
+author: "Sara ZOUIRCHI"
+date: "01/10/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+Le business des jeux vidéo s’est considérablement développé ces dernières années et a connu l’émergence de nouveaux acteurs. Aujourd’hui, les joueurs professionnels se sont multipliés, ont pris la parole et ont développé leur propre communauté. Ils deviennent désormais un moyen prisé par les éditeurs de jeux vidéo pour communiquer et de vendre leurs jeux. Bienvenue dans un monde où le jeu rapporte gros.
+
+
+````{r cars}
+video_games <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-07-30/video_games.csv")
+```
+
+
+```{r}
+library(tidyverse)
+library(lubridate)
+library(lubridate)
+library(tidyverse)
+library(magrittr)
+library(ggthemes) 
+library(lubridate)
+library(grid)
+library(ggplot2)
+library(tidyverse)
+library(glue)
+```
+
+```{r}
+url <- "https://raw.githubusercontent.com/lizawood/apps-and-games/master/PC_Games/PCgames_2004_2018_raw.csv"
+```
+
+## La première étape consiste à visualiser les données : il y a 26688 observations et 10 variables
+
+```{r}
+summary(video_games)
+```
+
+## Quels jeux ont eu le temps de "jeu_moyen" le plus élevé des deux dernières semaines (top 20)?
+
+```{r}
+video_games %>%
+
+  top_n(20, average_playtime) %>%
+
+  mutate(game = fct_reorder(game, average_playtime)) %>%
+  
+  ggplot(aes(x = game, y = average_playtime / 60)) +
+
+  geom_point(color = "red" ,alpha = .5, size = 3) +
+
+  coord_flip() +
+
+  xlab(NULL) +
+
+  ylab("Temps de jeu moyen (heure)") +
+
+  labs(title = str_wrap("Temps de jeu moyen des deux dernières semaines", 25)) +
+
+  labs(subtitle = "les 20 meilleurs jeux joués en moyenne sont affichés")
+```
+
+Ce code affiche les 20 jeux les plus jouées c'est deux dernières semaines.
+Le jeu le plus joué est Clicker Heroes plus de 80 heures en ses deux dernières semaines.
+
+
+## Y a t-il une relation entre average_playtime et metascore ?
+
+
+```{r}
+video_games %>%
+  ggplot(aes(average_playtime, metascore)) +
+  geom_point()+ 
+  geom_smooth()
+
+```
+
+## Calculez de la moyenne, l’écart type, le min et le max du prix
+
+```{r}
+video_games %>%
+  
+  summarise(moyenne = mean(price, na.rm = T),
+            ecart_type = sd(price, na.rm = T),
+            min = min(price, na.rm = T),
+            max = max(price, na.rm = T))
+```
+
+
+D'après ce code on obtient les résultats suivants:
+
+Le prix moyen est de 8.95 $
+L'écart-type du prix est de 12.16
+Le prix min est de 0.49 $
+Le prix max est de 596 $
+
+
+## Quels sont les jeux les plus chers ? 
+
+```{r}
+video_games %>%
+
+  top_n(5, price) %>%
+
+  ggplot(aes(x = reorder(game,price), y = price)) +
+
+  geom_col(color = "red", fill = "red", alpha = .4 , size = 2)+
+
+  coord_flip() +
+
+  xlab(NULL) +
+
+  ylab("Prix (USD)") +
+
+  labs(title = "Les jeux les plus chers") +
+
+  labs(subtitle = "Les 5 jeux les plus chers")
+
+```
+
+Le jeu le plus cher est ADR-Labelling Game qui coûte 600 $.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

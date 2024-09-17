@@ -1,0 +1,149 @@
+ 
+---
+title: "Projet"
+author: "Jean-Paul"
+date: "19/09/2019"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r}
+#tidy_anime <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-04-23/tidy_anime.csv")
+library(tidyverse)
+df <- tidy_anime
+library(cowplot)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+# Projet R : Analyse de données sur les animés asiatiques
+
+
+```{r}
+dim(df)
+```
+
+> Nous allons chercher a analyser les 20000 animés asiatiques, traités sous 28 variables différentes comme le numero identifiants, le nom, la date de sortie, le nombre de fans... 
+Pour des raisons de visibilité, nous allons d'abord nous concentrés sur le top des animés les plus vus et les mieux notés.
+
+## Quels sont les vingt animés avec la plus forte popularité? et les notes de ceux-ci? 
+### Montré sous forme de graphique                    "
+
+```{r}
+df %>%
+  select(name, popularity, members) %>%
+  distinct() %>%
+  arrange(popularity) %>%
+  slice(1:20) %>%
+  ggplot(aes(reorder(name, -popularity), members, fill = name))+
+  geom_col(show.legend = F)+
+  coord_flip()+
+  labs(title = "Classement des 20 animés les plus populaires",
+       y = "Nombre de vues",
+       x = "Nom de l'animé") -> c
+
+
+df %>%
+  select(name, popularity, score) %>%
+  distinct() %>%
+  arrange(popularity) %>%
+  slice(1:20) %>%
+  ggplot(aes(reorder(name, -popularity), score, fill = name))+
+  geom_col(show.legend = F)+
+  coord_flip()+
+  labs(title = "Classement des 20 animés les plus populaires",
+       y = "Note sur 10",
+       x = "Nom de l'animé")  -> d
+
+plot_grid(c,d)
+```
+
+
+```{r}
+df %>%
+  select(name, popularity, members, score, scored_by) %>%
+  distinct() %>%
+  arrange(popularity) %>%
+  ggplot(aes(scored_by, score))+
+  geom_point()+
+  geom_smooth()
+```
+
+
+> Nous constatons que les animés les plus vus ne sont cependant pas les mieux notés. On est en droit de se demander les raisons de cette tendance.Une des raisons possibles serait le genre de l'animé, en sachant qu'un genre peux amener un grand nombre de regardant, parce que sa forme et/ou son fond sont très appréciés, mais cependnat il peut ne pas être le mieux notés. 
+Nous allons donc chercher a savoir les genres amenant le plus de regardant.
+
+# Quels sont les genres les plus populaires?
+## Montré sous forme de graphique
+
+```{r}
+df %>%
+  select(name, genre, members) %>%
+  group_by(genre) %>%
+  summarise( n = n()) %>%
+  arrange(-n) %>%
+  slice(1:20) %>%
+  ggplot(aes(x = genre, y = n, fill = genre))+
+  geom_col(show.legend = F)+
+  coord_flip()+
+  labs(title = "Classement des 20 genres les plus populaires",
+       y = "Nombre de vues",
+       x = "Type de genre")
+```
+
+> Nous constatons donc que les genres Comedy, Action et Fantasy sont les genres les plus appréciés. 
+La deuxieme raison, peut etre la catégorie de public visé. Nous allons donc nous concentré nos efforts sur cette variable en observant le nombre de fans par rapport a la catégorie visé. 
+
+# Quels sont les catégories les plus populaires?
+## Montré sous forme de graphique
+
+```{r}
+df %>%
+  select(rating, members) %>%
+  distinct() %>%
+  arrange(rating)%>%
+  group_by(rating) %>%
+  mutate(., n = mean(members)) %>%
+  ggplot(aes(x = rating, y = n, fill = rating))+
+  geom_col(show.legend = F)+
+  coord_flip()+
+  labs(title = "Classement des catégories de public",
+       y = "Nombre de vues",
+       x = "Public visé")
+```
+
+> Ici, nous constatons que les publics les plus nombreux sont 13 ans ou plus, 17 ans et plus (violences physique et verbale) et avec de la nudité. 
+Pour finir, nous allons donc regardé le genre et la catégorie de public visé des 20 mangas les plus regardés pour voir si cela coincide. 
+
+```{r}
+df %>%
+  select(name, popularity, rating, genre) %>%
+  distinct() %>%
+  arrange(popularity) %>%
+  slice(1:59) 
+```
+
+> Pour conclure, nous pouvons dire que les mangas les plus vu coincident majoritairement avec notre analyse antérieur, cependant ce n'est pas parfait. Une analyse générationnel pourrait être une bonne idée. 
+
+```{r}
+df %>%
+  select(name, popularity, rating, genre) %>%
+  distinct() %>%
+  arrange(popularity) %>%
+  slice(1:59) %>%
+  ggplot(aes(x = genre, y = popularity, fill = genre))+
+  geom_col(show.legend = F)+
+  coord_flip()
+````
+
+
+
+

@@ -440,6 +440,64 @@ summary {
 <p><strong>re-faites</strong> <em>tous</em> les exercices ci-dessus en utilisant l’opérateur ‘et après’ / pipe <code>%&gt;%</code></p>
 </blockquote>
 </div>
+<div id="exercice-10" class="section level2">
+<h2>Exercice 10</h2>
+<blockquote>
+<p>trouvez le maximum retard au depart par aéroport pour JFK et LGA pour chaque jour de l’an. Plottez les résultats. Est-ce que les retards sont corrélés? Montrez la corrélation avec un plot.</p>
+</blockquote>
+</div>
+<div id="exercice-11" class="section level2">
+<h2>Exercice 11</h2>
+<blockquote>
+<p>de quel aéroport partent les vols à plus longue distance?</p>
+</blockquote>
+</div>
+</div>
+<div id="join_...-family-of-functions" class="section level1">
+<h1><code>join_...()</code> family of functions</h1>
+<blockquote>
+<p>first run thi setup R code chunk. It will load in your workspace 3 data frames:</p>
+</blockquote>
+<ul>
+<li><strong>airports</strong>: avec données sur les aéroports américains</li>
+<li><strong>flights</strong>: qu’on connait déjà</li>
+<li><strong>planes</strong>: avec les données pour chaque avion</li>
+</ul>
+<pre class="r"><code>planes &lt;- planes
+flights &lt;- flights
+airports &lt;- airports</code></pre>
+<div id="exercice-12" class="section level2">
+<h2>Exercice 12</h2>
+<blockquote>
+<p>est-ce que les routes plus longues sont desservies apr les avions les plus modernes?</p>
+</blockquote>
+<p><em>notes</em>: utilisez <code>left_join()</code> et mergez les dataframes <code>flights</code> et <code>planes</code></p>
+</div>
+<div id="exercice-13" class="section level2">
+<h2>Exercice 13</h2>
+<blockquote>
+<p>combien de vols qui partent des trois aéroport de NY atterrsient dans des destinations lus de 1000m s.n.m.?</p>
+</blockquote>
+<pre class="r"><code>table1</code></pre>
+<pre><code>## # A tibble: 6 x 4
+##   country      year  cases population
+##   &lt;chr&gt;       &lt;int&gt;  &lt;int&gt;      &lt;int&gt;
+## 1 Afghanistan  1999    745   19987071
+## 2 Afghanistan  2000   2666   20595360
+## 3 Brazil       1999  37737  172006362
+## 4 Brazil       2000  80488  174504898
+## 5 China        1999 212258 1272915272
+## 6 China        2000 213766 1280428583</code></pre>
+</div>
+</div>
+<div id="creating-tidy-data-reshape-with-gather-and-spread" class="section level1">
+<h1>creating tidy data: reshape with <code>gather()</code> and <code>spread()</code></h1>
+<div id="exercice-14" class="section level2">
+<h2>Exercice 14</h2>
+<blockquote>
+<p>tidy world_bank_pop dataset so that ‘year’ is a variable and for each country and each year you have urban population and urban population growh only. Plot as a geom_line the total population for each country over the years.</p>
+</blockquote>
+</div>
 </div>
 
 
